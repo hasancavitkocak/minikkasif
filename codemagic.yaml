@@ -5,33 +5,6 @@
 #   - Team settings > Code signing identities > Android keystores: keystore,
 #     referans adı "minikkasif_keystore"
 workflows:
-  android-release:
-    name: Android (Play Store AAB)
-    max_build_duration: 60
-    instance_type: mac_mini_m2
-    environment:
-      android_signing:
-        - minikkasif_keystore
-      flutter: stable
-    scripts:
-      - name: Paketleri al
-        script: flutter pub get
-      - name: Testler
-        script: flutter test
-      - name: AAB derle
-        script: flutter build appbundle --release --build-number=$PROJECT_BUILD_NUMBER
-    artifacts:
-      - build/**/outputs/**/*.aab
-    # İlk AAB Play Console'a elle yüklenir. Sonraki sürümleri otomatik
-    # göndermek için service account JSON'u GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-    # değişkenine (grup: google_play) koyup aşağıdaki satırları açın.
-    # environment'a da "groups: [google_play]" ekleyin.
-    # publishing:
-    #   google_play:
-    #     credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-    #     track: internal
-    #     submit_as_draft: true
-
   ios-release:
     name: iOS (TestFlight)
     max_build_duration: 60
@@ -64,3 +37,32 @@ workflows:
         # Yüklenen sürüm TestFlight'ta iç test kullanıcılarına açılır. Dış test
         # incelemesine otomatik gönderilmez (Beta App Information ister).
         submit_to_testflight: false
+
+  # Android şimdilik ertelendi. Zamanı gelince aşağıdaki bloğun başındaki
+  # "# " işaretleri kaldırılır ve keystore Codemagic'e yüklenir.
+  # android-release:
+  #   name: Android (Play Store AAB)
+  #   max_build_duration: 60
+  #   instance_type: mac_mini_m2
+  #   environment:
+  #     android_signing:
+  #       - minikkasif_keystore
+  #     flutter: stable
+  #   scripts:
+  #     - name: Paketleri al
+  #       script: flutter pub get
+  #     - name: Testler
+  #       script: flutter test
+  #     - name: AAB derle
+  #       script: flutter build appbundle --release --build-number=$PROJECT_BUILD_NUMBER
+  #   artifacts:
+  #     - build/**/outputs/**/*.aab
+  #   # İlk AAB Play Console'a elle yüklenir. Sonraki sürümleri otomatik
+  #   # göndermek için service account JSON'u GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+  #   # değişkenine (grup: google_play) koyup aşağıdaki satırları açın.
+  #   # environment'a da "groups: [google_play]" ekleyin.
+  #   # publishing:
+  #   #   google_play:
+  #   #     credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+  #   #     track: internal
+  #   #     submit_as_draft: true
