@@ -39,9 +39,12 @@ workflows:
     integrations:
       app_store_connect: simitci-asc
     environment:
+      # Codemagic > Settings > Code signing identities'teki referans adları
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.kocak.minikkasif
+        provisioning_profiles:
+          - minikkasif-profil
+        certificates:
+          - simitci-dist
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -58,4 +61,6 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true
+        # Yüklenen sürüm TestFlight'ta iç test kullanıcılarına açılır. Dış test
+        # incelemesine otomatik gönderilmez (Beta App Information ister).
+        submit_to_testflight: false
