@@ -1,6 +1,6 @@
 # Fıstık'ın seslendirmeleri
 
-**46 cümlenin 45 tanesi kayıtlı.**
+**46 cümlenin 46 tanesi kayıtlı.**
 
 Bu dosya `python tool/eksikler.py` ile otomatik yenilenir.
 
@@ -75,7 +75,7 @@ yani kayıtlar parça parça eklenebilir.
 
 | Dosya adı | Cümle | Kayıt |
 |---|---|---|
-| `scene_hint.mp3` | Bir renk seç, parmağınla çiz! | — |
+| `scene_hint.mp3` | Bir renk seç, parmağınla çiz! | var |
 | `music_follow.mp3` | Parlayan çubuğa dokun! | var |
 | `wardrobe_hint.mp3` | Yıldız topla, beni süsle! | var |
 | `cert_title.mp3` | Aferin Belgesi | var |
