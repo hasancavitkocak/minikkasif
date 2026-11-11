@@ -1,7 +1,7 @@
 # Codemagic derleme ayarları.
 # Gerekenler (Codemagic panelinde bir kez yapılır):
 #   - Team settings > Integrations > Developer Portal: App Store Connect API
-#     anahtarı, adı "minikkasif_asc"
+#     anahtarı, adı "simitci-asc"
 #   - Team settings > Code signing identities > Android keystores: keystore,
 #     referans adı "minikkasif_keystore"
 workflows:
@@ -37,7 +37,7 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: minikkasif_asc
+      app_store_connect: simitci-asc
     environment:
       ios_signing:
         distribution_type: app_store
