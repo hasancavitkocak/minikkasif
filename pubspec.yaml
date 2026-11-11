@@ -1,0 +1,68 @@
+name: minik_kasif
+description: "Minik Kaşif: 3-5 yaş için zekâ geliştiren mini oyunlar."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.5.6
+  flutter_tts: ^4.2.5
+  in_app_purchase: ^3.3.1
+  audioplayers: ^6.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# Uygulama ikonu: assets/icon/app_icon.png değişince
+# `dart run flutter_launcher_icons` ile yeniden üretilir.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/icon/app_icon.png
+
+flutter:
+  uses-material-design: true
+
+  # Görseller docs/gorsel-promptlari.md dosyasındaki adlarla bu klasörlere
+  # konur. Eksik görselin yerine oyun kendi geçici çizimini gösterir.
+  assets:
+    - assets/images/mascot/
+    - assets/images/bg/
+    - assets/images/icons/
+    - assets/images/objects/
+    - assets/images/puzzle/
+    - assets/images/ui/
+    - assets/images/stickers/
+    - assets/images/coloring/
+    - assets/images/outfits/
+    - assets/audio/
+    - assets/audio/voice/tr/
+    - assets/audio/voice/en/
+    - assets/audio/voice/de/
+    - assets/audio/voice/fr/
+    - assets/audio/voice/es/
+    - assets/audio/voice/ar/
+
+  # Tombul, baloncuk gibi yazı: gövde metni Sour Gummy, başlıklar (800)
+  # Cherry Bomb One. İkisi de SIL Open Font License; Türkçe harfleri tam.
+  fonts:
+    - family: Kasif
+      fonts:
+        - asset: assets/fonts/SourGummy-600.ttf
+          weight: 500
+        - asset: assets/fonts/SourGummy-800.ttf
+          weight: 700
+        - asset: assets/fonts/CherryBombOne.ttf
+          weight: 800

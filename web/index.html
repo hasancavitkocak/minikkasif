@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="Minik Kaşif: 3-5 yaş için zekâ geliştiren mini oyunlar.">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Minik Kaşif">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Minik Kaşif</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Oyun yüklenirken görünen açılış ekranı. İlk kare çizilince kaldırılır. -->
+  <style>
+    @font-face {
+      font-family: "Kasif";
+      src: url("assets/assets/fonts/CherryBombOne.ttf") format("truetype");
+      font-display: swap;
+    }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #9EDBFF; }
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      /* Karşılama ekranıyla aynı manzara; resim gelene kadar renk geçişi görünür. */
+      background:
+        url("assets/assets/images/bg/bg_home.png") center / cover no-repeat,
+        linear-gradient(#8FD3FF 0%, #C9EEFF 55%, #B9EB8F 55%, #9BE07A 100%);
+      font-family: "Kasif", "Trebuchet MS", sans-serif;
+      transition: opacity .45s ease;
+    }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    #splash img { height: 38vh; max-height: 300px; animation: bob 1.1s ease-in-out infinite alternate; }
+    #splash img.logo { height: 24vh; max-height: 190px; max-width: 86vw; object-fit: contain; margin-top: -2vh; animation: none; }
+    #splash h1 {
+      margin: 1vh 0 0; font-size: min(11vh, 64px); line-height: 1.1; color: #FFD34E;
+      -webkit-text-stroke: 10px #4A3728; paint-order: stroke fill;
+    }
+    #splash .dots { display: flex; gap: 14px; margin-top: 3vh; }
+    #splash .dots i {
+      width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fff;
+      animation: hop .9s ease-in-out infinite;
+    }
+    #splash .dots i:nth-child(1) { background: #FF6B6B; }
+    #splash .dots i:nth-child(2) { background: #FFD34E; animation-delay: .15s; }
+    #splash .dots i:nth-child(3) { background: #4CD080; animation-delay: .3s; }
+    #splash .dots i:nth-child(4) { background: #4DA6FF; animation-delay: .45s; }
+    @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    @keyframes hop { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-14px); } }
+    /* Flutter'ın geliştirme modundaki kendi yükleme çizgisi görünmesin. */
+    .flutter-loader { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <img src="splash/fox.png" alt="">
+    <img class="logo" src="splash/logo.png" alt="Minik Kaşif">
+    <div class="dots"><i></i><i></i><i></i><i></i></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var splash = document.getElementById('splash');
+      splash.classList.add('hide');
+      setTimeout(function () { splash.remove(); }, 600);
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

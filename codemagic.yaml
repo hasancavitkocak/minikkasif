@@ -1,0 +1,61 @@
+# Codemagic derleme ayarları.
+# Gerekenler (Codemagic panelinde bir kez yapılır):
+#   - Team settings > Integrations > Developer Portal: App Store Connect API
+#     anahtarı, adı "minikkasif_asc"
+#   - Team settings > Code signing identities > Android keystores: keystore,
+#     referans adı "minikkasif_keystore"
+workflows:
+  android-release:
+    name: Android (Play Store AAB)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      android_signing:
+        - minikkasif_keystore
+      flutter: stable
+    scripts:
+      - name: Paketleri al
+        script: flutter pub get
+      - name: Testler
+        script: flutter test
+      - name: AAB derle
+        script: flutter build appbundle --release --build-number=$PROJECT_BUILD_NUMBER
+    artifacts:
+      - build/**/outputs/**/*.aab
+    # İlk AAB Play Console'a elle yüklenir. Sonraki sürümleri otomatik
+    # göndermek için service account JSON'u GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+    # değişkenine (grup: google_play) koyup aşağıdaki satırları açın.
+    # environment'a da "groups: [google_play]" ekleyin.
+    # publishing:
+    #   google_play:
+    #     credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+    #     track: internal
+    #     submit_as_draft: true
+
+  ios-release:
+    name: iOS (TestFlight)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: minikkasif_asc
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.kocak.minikkasif
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Paketleri al
+        script: flutter pub get
+      - name: İmza profillerini uygula
+        script: xcode-project use-profiles
+      - name: IPA derle
+        script: |
+          flutter build ipa --release             --build-number=$PROJECT_BUILD_NUMBER             --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
