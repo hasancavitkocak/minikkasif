@@ -173,10 +173,14 @@ class _LevelScreenState extends State<LevelScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(
+                      SizedBox(
                         width: 58,
                         height: 58,
-                        child: SpeakOnce('pick_level', child: Mascot('hello')),
+                        child: SpeakOnce(
+                          'pick_level',
+                          before: 'g_${game.id}',
+                          child: const Mascot('hello'),
+                        ),
                       ),
                     ],
                   ),

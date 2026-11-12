@@ -24,7 +24,17 @@ GAMES = [
     "shapes", "memory", "shadow", "count", "pattern", "odd", "puzzle", "sort",
     "maze", "color", "groups", "simon", "diff", "dots",
     "scene", "duel", "music", "wardrobe",
+    "jobs", "seasons", "clock", "letters", "story",
 ]
+JOBS = [
+    "job_firefighter", "job_doctor", "job_cook", "job_teacher", "job_builder", "job_painter", "job_postman", "job_pilot", "job_farmer",
+    "tool_hose", "tool_stethoscope", "tool_pot", "tool_book", "tool_hammer", "tool_palette", "tool_envelope",
+]
+SEASONS = [
+    "season_spring", "season_summer", "season_autumn", "season_winter",
+    "dress_spring", "dress_summer", "dress_autumn", "dress_winter",
+]
+STORIES = [f"story_{name}_{page}" for name in ["ball", "seed"] for page in range(1, 7)]
 OUTFITS = ["acc_cap", "acc_flower", "acc_glasses", "acc_party", "acc_bow", "acc_explorer", "acc_tophat", "acc_crown"]
 STICKERS = [
     "st_cow", "st_goat", "st_chicken", "st_horse", "st_sheep", "st_duck", "st_tractor", "st_barn", "st_sunflower", "st_carrot", "st_corn", "st_rooster",
@@ -58,6 +68,12 @@ TARGETS["logo"] = ("ui", 1024, True)
 for name in OUTFITS:
     TARGETS[name] = ("outfits", 384, True)
 TARGETS["level_stop"] = ("ui", 512, True)
+for name in JOBS:
+    TARGETS[name] = ("jobs", 512, True)
+for name in SEASONS:
+    TARGETS[name] = ("seasons", 512, True)
+for name in STORIES:
+    TARGETS[name] = ("stories", 1200, False)
 # Kareye oturtulmayan, kendi en-boy oranında kalan görseller.
 WIDE = {"logo", "level_stop"}
 

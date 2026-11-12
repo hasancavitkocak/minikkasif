@@ -144,6 +144,7 @@ class _MusicScreenState extends State<MusicScreen> {
                           height: 64,
                           child: SpeakOnce(
                             'i_music',
+                            before: 'g_music',
                             child: Mascot(_finished ? 'happy' : 'hello'),
                           ),
                         ),

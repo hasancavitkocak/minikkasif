@@ -35,10 +35,14 @@ class _DuelScreenState extends State<DuelScreen> {
   void initState() {
     super.initState();
     _deal();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Tts.speakKeys(['g_duel'], owner: this);
+    });
   }
 
   @override
   void dispose() {
+    Tts.stopFor(this);
     _timer?.cancel();
     super.dispose();
   }

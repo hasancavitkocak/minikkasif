@@ -75,7 +75,7 @@ class WelcomeScreen extends StatelessWidget {
                                 const PopIn(
                                   delay: 1,
                                   child: SizedBox(
-                                    height: 150,
+                                    height: 128,
                                     child: GameImage(
                                       'assets/images/ui/logo.png',
                                       fallback: FittedBox(
@@ -91,9 +91,17 @@ class WelcomeScreen extends StatelessWidget {
                                 ),
                                 PopIn(
                                   delay: 2,
-                                  child: StrokeText(L.t('tagline'), size: 24),
+                                  child: StrokeText(
+                                    L.t('app_sub'),
+                                    size: 26,
+                                    color: AppColors.yellow,
+                                  ),
                                 ),
-                                const SizedBox(height: 22),
+                                PopIn(
+                                  delay: 2,
+                                  child: StrokeText(L.t('tagline'), size: 18),
+                                ),
+                                const SizedBox(height: 12),
                                 PopIn(
                                   delay: 4,
                                   child: Bobbing(

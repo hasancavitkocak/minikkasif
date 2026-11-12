@@ -21,7 +21,7 @@ class Legal {
 
   static const _about = {
     'tr':
-        'Minik Kaşif, 3-5 yaş arası çocuklar için hazırlanmış bir zekâ ve '
+        'Minik Kaşif, 3-6 yaş arası çocuklar için hazırlanmış bir zekâ ve '
         'beceri oyunudur. Hafıza, dikkat, mantık, sayılar ve yaratıcılık '
         'alanlarında oyunlar içerir.\n\n'
         'Uygulamada reklam yoktur. Çocuğunuz dışarıya açılan bir bağlantıya '
@@ -30,7 +30,7 @@ class Legal {
         'Soru ve önerileriniz için: {email}',
     'en':
         'Minik Kaşif is a brain and skills game made for children aged 3 to '
-        '5. It includes games for memory, attention, logic, numbers and '
+        '6. It includes games for memory, attention, logic, numbers and '
         'creativity.\n\n'
         'The app has no ads. Your child cannot reach an outside link or a '
         'purchase screen alone; those areas are behind the parent gate.\n\n'

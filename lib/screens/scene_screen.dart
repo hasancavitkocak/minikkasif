@@ -75,8 +75,19 @@ class _SceneScreenState extends State<SceneScreen> {
     super.initState();
     _restore();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _strokes.isEmpty) Tts.speak(L.t('scene_hint'));
+      if (!mounted) return;
+      // Sayfa boşsa adın ardından ne yapılacağı da söylenir.
+      Tts.speakKeys([
+        'g_scene',
+        if (_strokes.isEmpty) 'scene_hint',
+      ], owner: this);
     });
+  }
+
+  @override
+  void dispose() {
+    Tts.stopFor(this);
+    super.dispose();
   }
 
   void _restore() {

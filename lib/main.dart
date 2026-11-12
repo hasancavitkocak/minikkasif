@@ -43,10 +43,13 @@ class _MinikKasifAppState extends State<MinikKasifApp>
     super.dispose();
   }
 
-  /// Uygulama arka plana geçince müzik duraklar, geri gelince sürer.
+  /// Uygulama arka plana geçince müzik duraklar, geri gelince sürer ve
+  /// aboneliğin hâlâ geçerli olup olmadığına bakılır.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     Music.setActive(state == AppLifecycleState.resumed);
+    // Abonelik uygulama kapaliyken bitmis olabilir.
+    if (state == AppLifecycleState.resumed) Purchases.I.refresh();
   }
 
   @override
@@ -54,7 +57,7 @@ class _MinikKasifAppState extends State<MinikKasifApp>
     return ListenableBuilder(
       listenable: AppState.I,
       builder: (context, _) => MaterialApp(
-        title: 'Minik Kaşif',
+        title: "Minik Kaşif: Fıstık'la Oyunlar",
         debugShowCheckedModeBanner: false,
         theme: buildTheme(),
         locale: Locale(AppState.I.lang),

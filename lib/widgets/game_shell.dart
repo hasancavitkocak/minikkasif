@@ -194,10 +194,8 @@ class _GameShellState extends State<GameShell> {
     Sfx.play('win');
     _praise = L.praise();
     Tts.speak(_praise, owner: this);
-    // Övgünün ardından yeni çıkartma da sesli duyurulur.
-    if (_newSticker != null) {
-      _after(1700, () => Tts.speak(L.t('new_sticker'), owner: this));
-    }
+    // Yeni çıkartma sesli duyurulmaz; yalnızca ekranda küçük bir rozetle
+    // görünür. Her bölümde yinelenen duyuru yorucu oluyordu.
     setState(() => _earnedStars = stars);
   }
 
@@ -232,7 +230,7 @@ class _GameShellState extends State<GameShell> {
     if (_daily) {
       final task = AppState.I.nextDailyTask(games);
       if (task == null) {
-        // Macera bitti: görev ekranına dönülür, hediye orada açılır.
+        // On yıldız toplandı: macera ekranına dönülür, ödül orada görünür.
         Navigator.of(context).pop();
         return;
       }

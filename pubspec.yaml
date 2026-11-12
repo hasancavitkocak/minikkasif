@@ -16,6 +16,7 @@ dependencies:
   shared_preferences: ^2.5.6
   flutter_tts: ^4.2.5
   in_app_purchase: ^3.3.1
+  in_app_purchase_storekit: ^0.4.17
   audioplayers: ^6.8.1
 
 dev_dependencies:
@@ -47,22 +48,33 @@ flutter:
     - assets/images/stickers/
     - assets/images/coloring/
     - assets/images/outfits/
+    - assets/images/jobs/
+    - assets/images/seasons/
+    - assets/images/stories/
     - assets/audio/
     - assets/audio/voice/tr/
     - assets/audio/voice/en/
     - assets/audio/voice/de/
     - assets/audio/voice/fr/
     - assets/audio/voice/es/
-    - assets/audio/voice/ar/
 
-  # Tombul, baloncuk gibi yazı: gövde metni Sour Gummy, başlıklar (800)
-  # Cherry Bomb One. İkisi de SIL Open Font License; Türkçe harfleri tam.
+  # Tombul, yuvarlak yazı: gövde metni Baloo 2, başlıklar (800) Cherry Bomb
+  # One. İkisi de SIL Open Font License; Türkçe harfleri tam, rakamları net
+  # (7 rakamı 1'e benzemez, sıfırın ortası çizgisizdir). Baloo 2 dosyalarında
+  # harf boyu ve satır yüksekliği eski gövde fontuyla aynı olacak biçimde
+  # ayarlanmıştır; ekran düzenleri bu ölçülere göredir.
   fonts:
     - family: Kasif
       fonts:
-        - asset: assets/fonts/SourGummy-600.ttf
+        - asset: assets/fonts/Baloo2-600.ttf
           weight: 500
-        - asset: assets/fonts/SourGummy-800.ttf
+        - asset: assets/fonts/Baloo2-800.ttf
           weight: 700
         - asset: assets/fonts/CherryBombOne.ttf
           weight: 800
+    # Harfler oyunu: okumayı öğrenenler için tasarlanmış Andika (SIL OFL).
+    # Büyük I çizgili, küçük l kuyrukludur; harfler birbirine karışmaz.
+    - family: Harf
+      fonts:
+        - asset: assets/fonts/Andika-Bold.ttf
+          weight: 700

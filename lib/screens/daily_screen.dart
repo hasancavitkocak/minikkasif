@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../data/stickers.dart';
 import '../games/game_def.dart';
 import '../games/registry.dart';
 import '../l10n.dart';
@@ -10,8 +11,9 @@ import '../widgets/common.dart';
 import '../widgets/game_shell.dart';
 import '../widgets/ui.dart';
 
-/// Günün macerası: her gün değişen üç bölümlük görev. Üçü de bitince
-/// fazladan bir çıkartma kazanılır.
+/// Günün macerası: bugün on yıldız toplayan, günün çıkartmasını kazanır.
+/// Yıldızlar hangi oyundan gelirse gelsin sayılır; ekrandaki üç bölüm yalnızca
+/// öneridir ve sırayla oynanabilir.
 class DailyScreen extends StatefulWidget {
   const DailyScreen({super.key});
 
@@ -121,10 +123,15 @@ class _DailyScreenState extends State<DailyScreen> {
                                         ),
                                         const _Dots(),
                                       ],
-                                      _gift(state.dailyComplete),
+                                      _gift(
+                                        state.dailyComplete,
+                                        state.dailySticker,
+                                      ),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(height: 12),
+                                _starBar(state.dailyStars),
                               ],
                             ),
                           ),
@@ -251,14 +258,19 @@ class _DailyScreenState extends State<DailyScreen> {
     return current ? Glow(radius: 26, child: card) : card;
   }
 
-  Widget _gift(bool opened) {
-    return Container(
+  /// Günün ödülü: kazanılana kadar çıkartmanın gölgesi, kazanılınca kendisi.
+  Widget _gift(bool opened, Sticker? sticker) {
+    final circle = Container(
       width: 104,
       height: 104,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: opened ? AppColors.green : AppColors.red,
+        color: opened ? Colors.white : AppColors.yellow.withValues(alpha: 0.9),
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 5),
+        border: Border.all(
+          color: opened ? AppColors.green : Colors.white,
+          width: 5,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.25),
@@ -267,10 +279,67 @@ class _DailyScreenState extends State<DailyScreen> {
           ),
         ],
       ),
-      child: Icon(
-        opened ? Icons.check_rounded : Icons.card_giftcard_rounded,
-        color: Colors.white,
-        size: 60,
+      child: sticker == null
+          ? Icon(
+              opened ? Icons.check_rounded : Icons.card_giftcard_rounded,
+              color: opened ? AppColors.green : Colors.white,
+              size: 60,
+            )
+          : opened
+          ? StickerImage(sticker)
+          : ColorFiltered(
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF3D3D52),
+                BlendMode.srcIn,
+              ),
+              child: StickerImage(sticker),
+            ),
+    );
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        circle,
+        if (opened)
+          const Positioned(
+            top: -8,
+            right: -8,
+            child: CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.white,
+              child: Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.green,
+                size: 38,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Bugün toplanan yıldızlar: hedef kadar yıldız, kazanılanlar dolu.
+  Widget _starBar(int stars) {
+    return Container(
+      key: const ValueKey('daily_stars'),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: panelDecoration(radius: 24),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < AppState.dailyGoal; i++)
+            Icon(
+              Icons.star_rounded,
+              size: 40,
+              color: i < stars
+                  ? AppColors.yellow
+                  : AppColors.grey.withValues(alpha: 0.45),
+            ),
+          const SizedBox(width: 10),
+          Text(
+            '$stars/${AppState.dailyGoal}',
+            style: titleStyle.copyWith(fontSize: 24),
+          ),
+        ],
       ),
     );
   }

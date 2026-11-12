@@ -5,7 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:minik_kasif/app_state.dart';
 import 'package:minik_kasif/data/objects.dart';
 import 'package:minik_kasif/games/game_def.dart';
+import 'package:minik_kasif/data/jobs.dart';
+import 'package:minik_kasif/data/seasons.dart';
+import 'package:minik_kasif/games/jobs_game.dart';
+import 'package:minik_kasif/data/stories.dart';
+import 'package:minik_kasif/games/clock_game.dart';
+import 'package:minik_kasif/games/letters_game.dart';
 import 'package:minik_kasif/games/registry.dart';
+import 'package:minik_kasif/games/seasons_game.dart';
 import 'package:minik_kasif/l10n.dart';
 import 'package:minik_kasif/main.dart';
 import 'package:minik_kasif/screens/album_screen.dart';
@@ -116,7 +123,7 @@ void main() {
   firstRunTests();
 
   test('ilk iki oyun ve her oyunun ilk bölümü ücretsiz', () {
-    expect(games.length, 14);
+    expect(games.length, 18);
     expect(games.where((g) => g.free).map((g) => g.id), ['shapes', 'memory']);
     // Diğer oyunların yalnızca ilk bölümü aboneliksiz oynanır.
     final state = AppState.I;
@@ -129,6 +136,131 @@ void main() {
     state.setPremium(true);
     expect(games.every((g) => state.canPlay(g, g.levels)), isTrue);
     state.setPremium(false);
+  });
+
+  test('yeni oyunların verisi tutarlı: alfabe, mevsimler, hikâyeler', () {
+    // Her dilde büyük ve küçük harfler aynı sayıda ve aynı sırada.
+    for (final lang in L.languages.keys) {
+      final (upper, lower) = alphabets[lang]!;
+      expect(upper.length, lower.length, reason: lang);
+    }
+    expect(alphabets['tr']!.$1.length, 29);
+    expect(letterVoiceKey('ç'), 'let_cc');
+    expect(letterVoiceKey('ı'), 'let_ii');
+    expect(letterVoiceKey('i'), 'let_i');
+    // Her mevsimin bir Fıstık kıyafeti var; yalnızca ilkbahar ile sonbahar
+    // birbirinin benzeridir.
+    expect(seasonOutfits.length, seasons.length);
+    expect(seasonTwin(0), 2);
+    expect(seasonTwin(2), 0);
+    expect(seasonTwin(1), -1);
+    expect(seasonTwin(3), -1);
+    expect(SeasonsGame.modeOf(1), SeasonsMode.learn);
+    expect(SeasonsGame.modeOf(2), SeasonsMode.dress);
+    expect(SeasonsGame.modeOf(6), SeasonsMode.find);
+    expect(SeasonsGame.modeOf(10), SeasonsMode.season);
+    // Hikâyelerin her sayfası her dilde yazılı, her sayfanın simgesi var.
+    for (final story in stories) {
+      expect(story.emojis.length, story.pages.length, reason: story.id);
+      for (final lang in L.languages.keys) {
+        expect(story.title[lang], isNotNull, reason: '${story.id} $lang');
+        for (final page in story.pages) {
+          expect(page[lang], isNotNull, reason: '${story.id} $lang');
+        }
+      }
+    }
+    // Saat: ilk bölümler sayı yerleştirme, sonra okuma, en son ayarlama.
+    expect(ClockGame.modeOf(1), ClockMode.place);
+    expect(ClockGame.modeOf(5), ClockMode.read);
+    expect(ClockGame.modeOf(10), ClockMode.set);
+    // Meslekler: önce tanıtım, sonra adı söyleneni bulma, en son eşleme. İki
+    // tanıtım bölümü on mesleğin hepsini gösterir.
+    expect(JobsGame.modeOf(1), JobsMode.learn);
+    expect(JobsGame.modeOf(2), JobsMode.learn);
+    expect(JobsGame.modeOf(3), JobsMode.find);
+    expect(JobsGame.modeOf(6), JobsMode.match);
+    expect(jobs.length, 10);
+    // Her mesleğin ve mevsimin adı ile tanıtım cümlesi her dilde yazılı.
+    for (final lang in L.languages.keys) {
+      AppState.I.setLang(lang);
+      for (final key in [
+        for (final job in jobs) ...[job.nameKey, job.textKey],
+        for (final season in seasons) ...[season.id, '${season.id}_d'],
+      ]) {
+        expect(L.t(key), isNot(key), reason: '$lang $key');
+      }
+    }
+    AppState.I.setLang('tr');
+  });
+
+  testWidgets('saat: şekilli parça sürüklenince oyuğuna yerleşir', (
+    tester,
+  ) async {
+    AppState.I.markHowToSeen('clock');
+    // Yaşı büyük profilde ilk bölümde üç parça gelir (küçük yaşta iki).
+    AppState.I.updateProfile(AppState.I.profile.id, 'Elif', 'rabbit', 5);
+    final game = games.firstWhere((g) => g.id == 'clock');
+    await pumpScreen(tester, screens['tablet']!, game.builder(game, 1));
+    await settle(tester);
+    Iterable<ClockPiece> holes() => tester
+        .widgetList<ClockPiece>(find.byType(ClockPiece))
+        .where((p) => p.ghost);
+    final before = holes().length;
+    expect(before, greaterThanOrEqualTo(2));
+    final number = holes().first.number;
+    // Tepsideki parça, saatteki aynı sayılı oyuğa sürüklenir.
+    final piece = find.descendant(
+      of: find.byType(Draggable<int>),
+      matching: find.byWidgetPredicate(
+        (w) => w is ClockPiece && w.number == number && !w.ghost,
+      ),
+    );
+    final hole = find.byWidgetPredicate(
+      (w) => w is ClockPiece && w.number == number && w.ghost,
+    );
+    final from = tester.getCenter(piece.first);
+    final to = tester.getCenter(hole);
+    await tester.timedDragFrom(
+      from,
+      to - from,
+      const Duration(milliseconds: 400),
+    );
+    await settle(tester);
+    expect(holes().length, before - 1);
+    // Yanlış oyuğa bırakılan parça yerleşmez.
+    final other = tester
+        .widgetList<ClockPiece>(
+          find.descendant(
+            of: find.byType(Draggable<int>),
+            matching: find.byType(ClockPiece),
+          ),
+        )
+        .first
+        .number;
+    final wrongHole = holes().firstWhere((p) => p.number != other).number;
+    final start = tester.getCenter(
+      find
+          .descendant(
+            of: find.byType(Draggable<int>),
+            matching: find.byWidgetPredicate(
+              (w) => w is ClockPiece && w.number == other,
+            ),
+          )
+          .first,
+    );
+    final end = tester.getCenter(
+      find.byWidgetPredicate(
+        (w) => w is ClockPiece && w.number == wrongHole && w.ghost,
+      ),
+    );
+    await tester.timedDragFrom(
+      start,
+      end - start,
+      const Duration(milliseconds: 400),
+    );
+    await settle(tester);
+    expect(holes().length, before - 1);
+    await unmount(tester);
   });
 
   test('bölümler sırayla açılır ve yıldızlar kalıcıdır', () async {
@@ -172,7 +304,8 @@ void main() {
           const MinikKasifApp(),
           const HomeScreen(),
           LevelScreen(game: games.first),
-          const ParentsScreen(),
+          // Ebeveyn alanının her sekmesi.
+          for (var tab = 0; tab < 6; tab++) ParentsScreen(initialTab: tab),
           for (final a in activities) a.builder(a, 0),
           const PaywallScreen(),
           const AlbumScreen(),
@@ -240,7 +373,7 @@ void rewardTests() {
     expect(state.playsThisWeek, 2);
   });
 
-  test('günün macerası: üç farklı görev, hepsi bitince tamamlanır', () {
+  test('günün macerası: on yıldız toplanınca günün çıkartması gelir', () {
     final state = AppState.I;
     final tasks = state.dailyTasks(games);
     expect(tasks.length, 3);
@@ -254,14 +387,34 @@ void rewardTests() {
       isTrue,
     );
     expect(state.dailyComplete, isFalse);
+    final reward = state.dailySticker!;
+    expect(state.stickers.contains(reward.id), isFalse);
+    // Üç bölüm dokuz yıldız eder: hedefe bir yıldız kalır.
     for (final t in tasks) {
       state.finishLevel(t.gameId, t.level, 3);
     }
+    expect(state.dailyStars, 9);
+    expect(state.dailyComplete, isFalse);
+    // Yıldız hangi oyundan gelirse gelsin sayılır; tekrar oynanan bölüm de.
+    final won = state.finishLevel(tasks[0].gameId, tasks[0].level, 2);
     expect(state.dailyComplete, isTrue);
-    expect(
-      state.dailyTasks(games).map((t) => t.gameId),
-      tasks.map((t) => t.gameId),
-    );
+    expect(state.dailyStars, AppState.dailyGoal);
+    expect(won?.id, reward.id);
+    expect(state.stickers.contains(reward.id), isTrue);
+    // Hedeften sonra oynamak ikinci bir günlük çıkartma vermez.
+    final count = state.stickers.length;
+    state.finishLevel(tasks[1].gameId, tasks[1].level, 3);
+    expect(state.stickers.length, count);
+  });
+
+  test('bölüm sonu çıkartması seyrektir: ilk bölüm, sonra beş bölümde bir', () {
+    final state = AppState.I;
+    expect(state.finishLevel('shapes', 1, 1), isNotNull);
+    expect(state.finishLevel('shapes', 2, 1), isNull);
+    expect(state.finishLevel('shapes', 3, 1), isNull);
+    expect(state.finishLevel('shapes', 4, 1), isNull);
+    expect(state.finishLevel('shapes', 5, 1), isNotNull);
+    expect(state.stickers.length, 2);
   });
 
   test('profillerin ilerlemesi birbirinden ayrıdır', () async {
@@ -388,6 +541,44 @@ void firstRunTests() {
     await unmount(tester);
   });
 
+  testWidgets('ilk kurulum geçilebilir: yaş yoksa en kolay seviye', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    HomeScreen.askProfile = true;
+    addTearDown(() => HomeScreen.askProfile = false);
+    await tester.pumpWidget(MaterialApp(home: HomeScreen(key: UniqueKey())));
+    await settle(tester);
+    expect(find.text(L.t('setup_title')), findsOneWidget);
+    // Kullanım koşulları ilk kurulumdan okunabilir.
+    await tester.tap(find.text(L.t('terms')));
+    await settle(tester);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await settle(tester);
+    await tester.tap(find.text(L.t('not_now')));
+    await settle(tester);
+    expect(find.text(L.t('setup_title')), findsNothing);
+    expect(AppState.I.onboarded, isTrue);
+    // Yaş girilmedi: zorluk en küçük yaşa göre ayarlanır.
+    expect(AppState.I.profile.age, 0);
+    expect(AppState.I.playAge, 3);
+    expect(AppState.I.extraTolerance, 1);
+    expect(tester.takeException(), isNull);
+    await unmount(tester);
+  });
+
+  test('abonelik hakkı yalnızca Minik Kaşif ürünleriyle sayılır', () {
+    // Süresi dolan abonelik mağazanın hak listesinden düşer: liste boşsa ya
+    // da içinde bizim ürünümüz yoksa premium kapanır.
+    expect(Purchases.entitled([]), isFalse);
+    expect(Purchases.entitled(['baska_urun']), isFalse);
+    expect(Purchases.entitled([Purchases.monthlyId]), isTrue);
+    expect(Purchases.entitled(['baska_urun', Purchases.yearlyId]), isTrue);
+  });
+
   test('aynı nesne ve aynı sayı kısa aralıkla yeniden sorulmaz', () {
     final rng = Random(7);
     // Tek nesne seçen oyunlar (sayma, sıralama, farklı olanı bul...).
@@ -454,6 +645,11 @@ void firstRunTests() {
     );
     state.finishLevel(tasks[1].gameId, tasks[1].level, 3);
     state.finishLevel(tasks[2].gameId, tasks[2].level, 3);
+    // Üç öneri bitti ama hedefe ulaşılmadı: yeni öneriler gelir.
+    final more = state.nextDailyTask(games)!;
+    expect(state.dailyDone, isEmpty);
+    state.finishLevel(more.gameId, more.level, 3);
+    // On yıldız toplandı: macera biter.
     expect(state.nextDailyTask(games), isNull);
   });
 }

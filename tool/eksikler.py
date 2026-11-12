@@ -20,15 +20,42 @@ VOICE = os.path.join(BASE, "assets", "audio", "voice")
 # Oyunda bir sürümü var ama yenisi bekleniyor: ad -> neden.
 REDO = {}
 
+# Türkçe alfabe ve harflerin kayıt adları (lib/games/letters_game.dart ile aynı).
+LETTERS = "abcçdefgğhıijklmnoöprsştuüvyz"
+LETTER_FILE = {"ç": "cc", "ğ": "gg", "ı": "ii", "ö": "oo", "ş": "ss", "ü": "uu"}
+LETTER_KEYS = [f"let_{LETTER_FILE.get(ch, ch)}" for ch in LETTERS]
+
+
+def story_pages():
+    """lib/data/stories.dart içindeki Türkçe sayfa metinleri: ad -> cümle."""
+    src = open(os.path.join(BASE, "lib", "data", "stories.dart"), encoding="utf-8").read()
+    pages = {}
+    for block in src.split("  Story(\n")[1:]:
+        story = re.match(r"\s*'(\w+)'", block).group(1)
+        texts = re.findall(r"'tr':\s*\n?\s*\"(.*?)\",\n", block)
+        # İlk Türkçe satır hikâyenin adıdır.
+        for i, text in enumerate(texts[1:], 1):
+            pages[f"story_{story}_{i}"] = text
+    return pages
+
+
+STORY_KEYS = list(story_pages())
+
 # Seslendirilecek cümleler, kayıt sırasıyla.
 VOICE_KEYS = [
     ("Tanışma konuşması (ilk açılışta, sırayla)", ["intro_1", "intro_2", "intro_3", "intro_4"]),
     ("Ana ekran ve bölüm haritası", ["pick_game", "pick_level"]),
-    ("Bölüm sonu (övgülerden rastgele biri; çıkartma kazanılınca ardından ikinci cümle)", ["praise_1", "praise_2", "praise_3", "praise_4", "new_sticker"]),
+    ("Oyun adları (oyuna girince okunur)", ["g_shapes", "g_memory", "g_shadow", "g_count", "g_pattern", "g_odd", "g_puzzle", "g_sort", "g_maze", "g_color", "g_groups", "g_simon", "g_diff", "g_dots", "g_jobs", "g_seasons", "g_clock", "g_letters", "g_scene", "g_duel", "g_music", "g_wardrobe", "g_story"]),
+    ("Bölüm sonu (övgülerden rastgele biri)", ["praise_1", "praise_2", "praise_3", "praise_4"]),
     ("Oyun yönergeleri", None),  # i_ ile başlayan tüm anahtarlar
     ("Günün macerası", ["daily_bubble", "daily_done"]),
     ("Etkinlikler ve belge", ["scene_hint", "music_follow", "wardrobe_hint", "cert_title"]),
-    ("Sayılar (sayma oyununda doğru yanıt okunur)", [f"num_{n}" for n in range(1, 11)]),
+    ("Meslekler: her mesleğin adı ve tanıtım cümlesi (ayrı dosyalar)", ['job_firefighter', 'job_firefighter_d', 'job_doctor', 'job_doctor_d', 'job_cook', 'job_cook_d', 'job_teacher', 'job_teacher_d', 'job_builder', 'job_builder_d', 'job_painter', 'job_painter_d', 'job_postman', 'job_postman_d', 'job_pilot', 'job_pilot_d', 'job_farmer', 'job_farmer_d', 'job_astronaut', 'job_astronaut_d']),
+    ("Mevsimler: her mevsimin adı ve tanıtım cümlesi (ayrı dosyalar)", ['season_spring', 'season_spring_d', 'season_summer', 'season_summer_d', 'season_autumn', 'season_autumn_d', 'season_winter', 'season_winter_d']),
+    ("Hikâyeler ekranı", ["story_hint", "story_end"]),
+    ("Sayılar (sayma ve saat oyunlarında okunur)", [f"num_{n}" for n in range(1, 13)]),
+    ("Harfler (harfin okunuşu: \"a\", \"be\", \"ce\"...)", LETTER_KEYS),
+    ("Hikâye sayfaları (her sayfa ayrı dosya)", STORY_KEYS),
 ]
 
 
@@ -82,7 +109,8 @@ def missing_images():
     return count
 
 
-def voice_lines():
+def voice_table():
+    """Seslendirilecek her cümle: kayıt adı -> Türkçe metin."""
     src = open(os.path.join(BASE, "lib", "l10n.dart"), encoding="utf-8").read()
     tr = src[src.index("'tr': {"):src.index("'en': {")]
     table = {}
@@ -90,13 +118,29 @@ def voice_lines():
         table[key] = text
     for i, text in enumerate(table["praise"].split("|")):
         table[f"praise_{i + 1}"] = text
-    for n in range(1, 11):
+    for n in range(1, 13):
         table[f"num_{n}"] = str(n)
+    for ch, key in zip(LETTERS, LETTER_KEYS):
+        table[key] = ch.upper() if ch not in "ıi" else ("I" if ch == "ı" else "İ")
+    table.update(story_pages())
+    return table
 
-    def recorded(key):
-        folder = os.path.join(VOICE, "tr")
-        return any(os.path.exists(os.path.join(folder, f"{key}.{ext}")) for ext in ("mp3", "m4a", "wav", "ogg"))
 
+def recorded(key):
+    folder = os.path.join(VOICE, "tr")
+    return any(os.path.exists(os.path.join(folder, f"{key}.{ext}")) for ext in ("mp3", "m4a", "wav", "ogg"))
+
+
+def voice_sections(table):
+    """Bölüm başlıkları ve o bölümdeki kayıt adları, kayıt sırasıyla."""
+    return [
+        (title, [k for k in table if k.startswith("i_")] if keys is None else keys)
+        for title, keys in VOICE_KEYS
+    ]
+
+
+def voice_lines():
+    table = voice_table()
     out = [
         "# Fıstık'ın seslendirmeleri",
         "",
@@ -110,13 +154,12 @@ def voice_lines():
         "- Biçim: MP3 (tercih), M4A, WAV ya da OGG; tek kanal yeterli.",
         "- Başta ve sonda boşluk bırakmayın, cümle hemen başlasın.",
         "- Hepsi aynı ses, aynı uzaklık ve aynı ses düzeyinde olsun.",
-        "- Başka diller için aynı adlar `assets/audio/voice/en/`, `de/`, `fr/`, `es/`, `ar/` klasörlerine konur.",
+        "- Başka diller için aynı adlar `assets/audio/voice/en/`, `de/`, `fr/`, `es/` klasörlerine konur.",
+        "- Toplu kayıt için: [ses-gruplari.md](ses-gruplari.md) (yalnızca eksik cümleler, grup grup).",
         "",
     ]
     total = done = 0
-    for title, keys in VOICE_KEYS:
-        if keys is None:
-            keys = [k for k in table if k.startswith("i_")]
+    for title, keys in voice_sections(table):
         out += [f"## {title}", "", "| Dosya adı | Cümle | Kayıt |", "|---|---|---|"]
         for key in keys:
             ok = recorded(key)

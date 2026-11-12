@@ -6,7 +6,7 @@ Her prompt **tek başına eksiksizdir**: kutuyu kopyalayıp yapıştırın, çı
 - Eksik görsel oyunu bozmaz, yerine geçici çizim görünür. İstediğiniz sırayla üretebilirsiniz.
 - Stil tutarlılığı için: 1 numaralı görseli (`fox_hello.png`) beğendikten sonra, aracınız destekliyorsa diğer üretimlerde onu referans görsel olarak verin.
 
-Toplam **125 görsel** (59 ve sonrası yeni oyunlar ve çıkartma albümü, 100–109 boyama resimleri, 110 logo, 111 el sallama karesi, 112 bölüm durağı, 113–117 yeni ikonlar, 118–125 Fıstık'ın aksesuarları). Yalnızca eksik olanlar: [eksik-gorseller.md](eksik-gorseller.md). Sıra, önerilen üretim sırasıdır; ilk 17 görsel bittiğinde ana menü tamamen gerçek görünür.
+Toplam **166 görsel** (59 ve sonrası yeni oyunlar ve çıkartma albümü, 100–109 boyama resimleri, 110 logo, 111 el sallama karesi, 112 bölüm durağı, 113–117 yeni ikonlar, 118–125 Fıstık'ın aksesuarları, 126–130 yeni oyun ikonları, 131–146 meslekler, 147–154 mevsimler, 164–175 hikâyeler). Yalnızca eksik olanlar: [eksik-gorseller.md](eksik-gorseller.md). Sıra, önerilen üretim sırasıdır; ilk 17 görsel bittiğinde ana menü tamamen gerçek görünür.
 
 ---
 
@@ -900,3 +900,282 @@ A single purple magician's top hat with a yellow band, seen from the front, as a
 A single golden crown with three red jewels, seen from the front, as a small accessory that a cartoon fox character can wear, nothing else in the image, no character, no head. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
 ```
 
+---
+
+## T. Yeni oyunların ikonları (Meslekler, Mevsimler, Saat, Harfler, Hikâyeler)
+
+Klasör: `assets/images/icons/` · 512×512 · Şeffaf
+
+Ana ekrandaki yeni kartların ikonları. Gelene kadar kartlarda emoji görünür.
+
+### 126. `game_jobs.png`
+
+```
+A red firefighter helmet, a doctor's stethoscope and a white chef hat arranged together as a group, as a glossy game icon. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no watermark, centered, clean edges, transparent background.
+```
+
+### 127. `game_seasons.png`
+
+```
+A single round tree split into four quarters showing the four seasons: pink spring blossoms, green summer leaves, orange autumn leaves and snowy white winter branches, as a glossy game icon. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no watermark, centered, clean edges, transparent background.
+```
+
+### 128. `game_clock.png`
+
+```
+A colorful toy alarm clock with two little bells on top, a white face with twelve small colorful dots instead of numbers, one short red hand and one long blue hand, as a glossy game icon. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, clean edges, transparent background.
+```
+
+### 129. `game_letters.png`
+
+```
+Three chunky colorful wooden alphabet blocks stacked in a small pyramid, showing the capital letters A, B and C, one letter on each block, as a glossy game icon. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no other text, no watermark, centered, clean edges, transparent background.
+```
+
+### 130. `game_story.png`
+
+```
+An open picture storybook with colorful blank pages, a red ribbon bookmark and three little sparkling stars rising from the pages, as a glossy game icon. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no watermark, centered, clean edges, transparent background.
+```
+
+---
+
+## U. Meslekler oyunu
+
+Klasör: `assets/images/jobs/` · 512×512 · Şeffaf
+
+Dokuz meslek ve yedi araç. Çocuk aracı kullanan mesleği (ya da mesleğin aracını) bulur. Pilotun uçağı, çiftçinin traktörü, astronot ve roket oyundaki hazır görsellerden gelir. Gelene kadar emoji görünür.
+
+### 131. `job_firefighter.png`
+
+```
+A firefighter, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a red firefighter helmet and a yellow-and-red firefighter uniform with boots, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 132. `job_doctor.png`
+
+```
+A doctor, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a white doctor's coat over a light blue shirt, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 133. `job_cook.png`
+
+```
+A cook, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a tall white chef hat, a white chef jacket and a red neckerchief, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 134. `job_teacher.png`
+
+```
+A school teacher, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing glasses, a green cardigan and trousers, holding a wooden pointer stick. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 135. `job_builder.png`
+
+```
+A construction worker, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a yellow hard hat, an orange safety vest and blue overalls, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 136. `job_painter.png`
+
+```
+An artist painter, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a red beret and a blue apron with colorful paint stains, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 137. `job_postman.png`
+
+```
+A mail carrier, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a blue uniform with a blue cap and a large brown shoulder bag, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 138. `job_pilot.png`
+
+```
+An airplane pilot, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a dark blue pilot uniform with golden stripes on the sleeves and a pilot cap, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 139. `job_farmer.png`
+
+```
+A farmer, friendly smiling cartoon adult, full body, standing, facing the viewer, simple cute face, wearing a straw hat, a red checkered shirt and blue denim overalls with rubber boots, hands empty. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 140. `tool_hose.png`
+
+```
+A single red fire hose rolled up in a coil with a shiny golden nozzle, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 141. `tool_stethoscope.png`
+
+```
+A single doctor's stethoscope with a blue tube and a silver chest piece, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 142. `tool_pot.png`
+
+```
+A single red cooking pot with two handles and a wooden ladle inside, a little steam rising, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 143. `tool_book.png`
+
+```
+A single thick closed school book with a green cover and a red apple sitting on top of it, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 144. `tool_hammer.png`
+
+```
+A single hammer with a wooden handle and a grey metal head, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 145. `tool_palette.png`
+
+```
+A single wooden painter's palette with six colorful blobs of paint and one paintbrush, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 146. `tool_envelope.png`
+
+```
+A single white letter envelope with a red heart-shaped seal and a small colorful postage stamp, nothing else in the image. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+---
+
+## V. Mevsimler oyunu
+
+Klasör: `assets/images/seasons/` · 512×512 · Şeffaf
+
+Dört mevsim ve Fıstık'ın her mevsime göre giyinmiş dört hali. Çocuk, Fıstık'ın o havada ne giyeceğini (ya da kıyafetin mevsimini) bulur. Fıstık her resimde aynı görünsün diye, aracınız destekliyorsa `fox_hello.png` görselini referans olarak verin. Gelene kadar emoji görünür.
+
+### 147. `season_spring.png`
+
+```
+A small spring scene: a tree full of pink blossoms, red and yellow tulips in green grass, and a little grey cloud with a few blue raindrops, nothing else. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 148. `season_summer.png`
+
+```
+A small summer scene: a big bright yellow sun, a striped beach umbrella and a sandcastle with a little bucket on yellow sand, nothing else. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 149. `season_autumn.png`
+
+```
+A small autumn scene: a tree with orange, red and yellow leaves, leaves falling in the wind and a pile of leaves on the ground with two brown mushrooms, nothing else. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 150. `season_winter.png`
+
+```
+A small winter scene: a happy snowman with a carrot nose and a red scarf, a snow-covered pine tree and falling white snowflakes, nothing else. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 151. `dress_spring.png`
+
+```
+A cute baby fox character mascot named Fıstık, bright orange fur with a cream-colored muzzle, belly and tail tip, big round dark-brown eyes and pink cheeks, full body, standing upright and facing the viewer with a happy smile, dressed for a rainy spring day: wearing a yellow raincoat with a hood and red rubber rain boots, holding an open rainbow-colored umbrella in one paw. Only the fox, nothing else in the image, no background scenery. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 152. `dress_summer.png`
+
+```
+A cute baby fox character mascot named Fıstık, bright orange fur with a cream-colored muzzle, belly and tail tip, big round dark-brown eyes and pink cheeks, full body, standing upright and facing the viewer with a happy smile, dressed for a hot summer day: wearing a yellow t-shirt, blue shorts, orange sandals, a straw sun hat and green sunglasses. Only the fox, nothing else in the image, no background scenery. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 153. `dress_autumn.png`
+
+```
+A cute baby fox character mascot named Fıstık, bright orange fur with a cream-colored muzzle, belly and tail tip, big round dark-brown eyes and pink cheeks, full body, standing upright and facing the viewer with a happy smile, dressed for a cool autumn day: wearing a cozy orange knitted sweater, brown trousers, brown boots and a small teal scarf, holding one red autumn leaf in one paw. Only the fox, nothing else in the image, no background scenery. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+### 154. `dress_winter.png`
+
+```
+A cute baby fox character mascot named Fıstık, bright orange fur with a cream-colored muzzle, belly and tail tip, big round dark-brown eyes and pink cheeks, full body, standing upright and facing the viewer with a happy smile, dressed for a cold snowy winter day: wearing a thick puffy red winter coat, a blue knitted beanie with a white pom-pom, a striped scarf, green mittens and brown snow boots. Only the fox, nothing else in the image, no background scenery. Square 1:1 image. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, no text, no letters, no numbers, no watermark, centered, fills the frame, clean edges, transparent background.
+```
+
+---
+
+## Y. Hikâyeler
+
+Klasör: `assets/images/stories/` · 1200×800 (3:2 yatay) · Şeffaf değil, tam sahne
+
+İki hikâyenin altışar sayfası. Fıstık her resimde aynı görünmeli: aracınız destekliyorsa her üretimde `fox_hello.png` görselini referans olarak verin. Gelene kadar sayfalarda emoji görünür.
+
+**Kayıp Top** (126 numaradan sonraki ilk altı resim), **Minik Tohum** (son altı resim).
+
+### 164. `story_ball_1.png`
+
+```
+In a sunny green meadow with a few daisies, a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, is happily playing with a shiny red ball, kicking it with one paw. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 165. `story_ball_2.png`
+
+```
+In a green meadow, a shiny red ball is rolling away toward a row of thick green bushes, while a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, watches it with a surprised face. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 166. `story_ball_3.png`
+
+```
+In a green meadow next to green bushes, a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, is talking to a friendly little grey rabbit with long ears, the fox looks a bit worried and the rabbit listens kindly. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 167. `story_ball_4.png`
+
+```
+A cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, and a friendly little grey rabbit are running together across a green meadow toward a small blue stream in the distance. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 168. `story_ball_5.png`
+
+```
+On the grassy bank of a small blue stream, a shiny red ball is lying in the grass right next to a friendly yellow duck, with green reeds nearby. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 169. `story_ball_6.png`
+
+```
+In a sunny green meadow near a small blue stream, a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, a little grey rabbit and a yellow duck are happily playing together with a shiny red ball. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 170. `story_seed_1.png`
+
+```
+In a garden with brown soil and green grass, a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, is holding one small brown seed in an open paw and looking at it with curiosity. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 171. `story_seed_2.png`
+
+```
+In a garden, a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, is kneeling and planting a small brown seed into a little hole in the brown soil, with a small red shovel lying nearby. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 172. `story_seed_3.png`
+
+```
+In a garden, a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, is watering a small mound of brown soil with a blue watering can, water drops falling on the soil. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 173. `story_seed_4.png`
+
+```
+In a garden, a big bright yellow sun is shining warmly over a small mound of brown soil, while a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, sits next to it and waits patiently. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 174. `story_seed_5.png`
+
+```
+In a garden, a tiny green sprout with two small leaves is growing out of a mound of brown soil, while a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, looks at it with a big amazed smile. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```
+
+### 175. `story_seed_6.png`
+
+```
+In a sunny garden, a tall sunflower with a big yellow flower and green leaves is standing, taller than a cute baby fox cub named Fıstık with bright orange fur, a cream-colored muzzle, chest and tail tip, big round dark-brown eyes, pink cheeks and a small teal scarf around the neck, who stands next to it looking up very happily with both paws raised. Wide 3:2 landscape image, full scene with a simple soft background that fills the whole frame. Cute flat vector cartoon illustration for a preschool kids game, thick soft dark-brown outlines, rounded chunky shapes, bright cheerful saturated colors with soft pastel shading, like a page of a children's picture book, no text, no letters, no numbers, no watermark, no speech bubbles.
+```

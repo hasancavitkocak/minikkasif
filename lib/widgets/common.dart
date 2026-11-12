@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../data/objects.dart';
 import '../data/outfits.dart';
-import '../l10n.dart';
 import '../services/audio.dart';
 import '../theme.dart';
 
@@ -146,10 +145,13 @@ class _OutfitOverlay extends StatelessWidget {
 
 /// Ekran açılınca maskotun balonundaki cümleyi bir kez seslendirir.
 class SpeakOnce extends StatefulWidget {
-  const SpeakOnce(this.textKey, {super.key, required this.child});
+  const SpeakOnce(this.textKey, {super.key, this.before, required this.child});
 
   /// Çeviri anahtarı (l10n.dart).
   final String textKey;
+
+  /// Varsa önce bu anahtarın cümlesi okunur (ör. oyunun adı).
+  final String? before;
   final Widget child;
 
   @override
@@ -161,8 +163,19 @@ class _SpeakOnceState extends State<SpeakOnce> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) Tts.speak(L.t(widget.textKey));
+      if (!mounted) return;
+      Tts.speakKeys([
+        if (widget.before != null) widget.before!,
+        widget.textKey,
+      ], owner: this);
     });
+  }
+
+  @override
+  void dispose() {
+    // Sıradaki cümle, ekran kapandıktan sonra başka ekranda okunmasın.
+    Tts.stopFor(this);
+    super.dispose();
   }
 
   @override

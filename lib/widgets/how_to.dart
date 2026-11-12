@@ -2,7 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../data/jobs.dart';
 import '../data/objects.dart';
+import '../data/seasons.dart';
+import '../games/clock_game.dart';
 import '../games/game_def.dart';
 import '../games/puzzle_game.dart';
 import '../games/shapes_game.dart';
@@ -600,6 +603,90 @@ Widget demoFor(String gameId) {
           DemoStep.tap('mid'),
           DemoStep.tap('big'),
         ],
+      );
+    case 'jobs':
+    case 'seasons':
+      // İlk bölüm tanıtımdır: resme bakılır, ok ile sonrakine geçilir.
+      final jobsDemo = gameId == 'jobs';
+      return DemoScene(
+        items: [
+          DemoItem(
+            'picture',
+            const Alignment(-0.55, 0),
+            0.8,
+            _tile(ObjectImage(jobsDemo ? jobs[0].person : seasons[3])),
+          ),
+          DemoItem(
+            'extra',
+            // Mevsimlerde Fıstık, resmin köşesinde büyükçe durur (oyundaki gibi).
+            jobsDemo ? const Alignment(0.1, 0.45) : const Alignment(-0.1, 0.4),
+            jobsDemo ? 0.36 : 0.62,
+            jobsDemo
+                ? _tile(ObjectImage(jobs[0].tool))
+                : ObjectImage(seasonOutfits[3]),
+          ),
+          DemoItem(
+            'next',
+            const Alignment(0.72, 0),
+            0.4,
+            _tile(
+              const FittedBox(
+                child: Icon(Icons.arrow_forward_rounded, color: Colors.white),
+              ),
+              color: AppColors.green,
+            ),
+          ),
+        ],
+        steps: const [DemoStep.tap('next')],
+      );
+    case 'clock':
+      // İlk bölümler: şekilli sayı parçası sürüklenip oyuğuna bırakılır.
+      const hole = Alignment(-0.45, -0.1);
+      return DemoScene(
+        items: [
+          DemoItem(
+            'hole',
+            hole,
+            0.62,
+            LayoutBuilder(
+              builder: (context, box) =>
+                  ClockPiece(1, size: box.maxWidth, ghost: true),
+            ),
+          ),
+          DemoItem(
+            'piece',
+            const Alignment(0.5, 0.35),
+            0.5,
+            LayoutBuilder(
+              builder: (context, box) => ClockPiece(1, size: box.maxWidth),
+            ),
+          ),
+        ],
+        steps: const [DemoStep.drag('piece', hole)],
+      );
+    case 'letters':
+      return DemoScene(
+        items: [
+          DemoItem(
+            'ask',
+            const Alignment(0, -0.6),
+            0.42,
+            _numberTile('A', AppColors.blue),
+          ),
+          DemoItem(
+            'b',
+            const Alignment(-0.45, 0.55),
+            0.42,
+            _numberTile('B', AppColors.orange),
+          ),
+          DemoItem(
+            'a',
+            const Alignment(0.45, 0.55),
+            0.42,
+            _numberTile('A', AppColors.blue),
+          ),
+        ],
+        steps: const [DemoStep.tap('a')],
       );
     case 'dots':
       return DemoScene(

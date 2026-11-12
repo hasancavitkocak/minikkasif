@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import 'clock_game.dart';
 import 'coloring_game.dart';
 import 'count_game.dart';
 import 'diff_game.dart';
 import 'dots_game.dart';
 import 'game_def.dart';
 import 'groups_game.dart';
+import 'jobs_game.dart';
+import 'letters_game.dart';
 import 'maze_game.dart';
 import 'memory_game.dart';
 import 'odd_game.dart';
 import 'pattern_game.dart';
 import 'puzzle_game.dart';
+import 'seasons_game.dart';
 import 'shadow_game.dart';
 import 'shapes_game.dart';
 import 'simon_game.dart';
@@ -19,6 +23,7 @@ import 'sort_game.dart';
 import '../screens/duel_screen.dart';
 import '../screens/music_screen.dart';
 import '../screens/scene_screen.dart';
+import '../screens/story_screen.dart';
 import '../screens/wardrobe_screen.dart';
 import '../widgets/game_shell.dart';
 
@@ -138,6 +143,30 @@ final games = <GameDef>[
     color: const Color(0xFF26A69A),
     builder: (g, level) => DotsGame(game: g, level: level),
   ),
+  GameDef(
+    id: 'jobs',
+    emoji: '🧑‍🚒',
+    color: const Color(0xFFEF5350),
+    builder: (g, level) => JobsGame(game: g, level: level),
+  ),
+  GameDef(
+    id: 'seasons',
+    emoji: '🍂',
+    color: const Color(0xFFFFA726),
+    builder: (g, level) => SeasonsGame(game: g, level: level),
+  ),
+  GameDef(
+    id: 'clock',
+    emoji: '🕒',
+    color: const Color(0xFF42A5F5),
+    builder: (g, level) => ClockGame(game: g, level: level),
+  ),
+  GameDef(
+    id: 'letters',
+    emoji: '🔤',
+    color: const Color(0xFFAB47BC),
+    builder: (g, level) => LettersGame(game: g, level: level),
+  ),
 ];
 
 /// Bölümü ve yıldızı olmayan serbest etkinlikler; ana ekranda oyunlardan
@@ -170,5 +199,12 @@ final activities = <GameDef>[
     color: const Color(0xFFFFB74D),
     levels: 0,
     builder: (_, _) => const WardrobeScreen(),
+  ),
+  GameDef(
+    id: 'story',
+    emoji: '📖',
+    color: const Color(0xFF8D6E63),
+    levels: 0,
+    builder: (_, _) => const StoryScreen(),
   ),
 ];

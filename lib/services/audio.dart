@@ -65,6 +65,9 @@ class Music {
 /// Bir cümlenin kaydı varsa metin okuma motoru yerine o çalınır.
 class Voice {
   static AudioPlayer? _player;
+
+  /// Şu an bir kayıt çalıyor mu (bkz. [finished]).
+  static bool _active = false;
   static Set<String>? _files;
 
   /// [key] cümlesinin seçili dildeki kaydının yolu; kayıt yoksa null.
@@ -85,16 +88,33 @@ class Voice {
     try {
       final player = _player ??= AudioPlayer();
       await player.stop();
+      _active = true;
       await player.play(AssetSource(path));
     } catch (_) {
+      _active = false;
       // Çalma yarıda kesilirse (hemen ardından başka cümle gelirse) sessiz geçilir.
     }
   }
 
   static Future<void> stop() async {
+    _active = false;
     try {
       await _player?.stop();
     } catch (_) {}
+  }
+
+  /// Çalan kayıt bitince tamamlanır. Kayıt çalmıyorsa (cümle makine sesiyle
+  /// okunuyorsa) [fallback] kadar bekler.
+  static Future<void> finished(Duration fallback) async {
+    final player = _player;
+    if (!_active || player == null) {
+      await Future<void>.delayed(fallback);
+      return;
+    }
+    try {
+      await player.onPlayerComplete.first.timeout(const Duration(seconds: 8));
+    } catch (_) {}
+    _active = false;
   }
 }
 
@@ -112,8 +132,27 @@ class Tts {
   /// Testler için: söylenmesi istenen her cümle ve kayıt anahtarı bildirilir.
   static void Function(String text, String? key)? observer;
 
-  static Future<void> speak(String text, {Object? owner}) async {
-    final key = L.voiceKey(text);
+  /// [keys] çeviri anahtarlarındaki cümleleri sırayla okur; biri bitmeden
+  /// ötekine geçmez. Araya başka bir konuşma ya da susturma girerse kalanı
+  /// okunmaz.
+  static Future<void> speakKeys(List<String> keys, {Object? owner}) async {
+    for (var i = 0; i < keys.length; i++) {
+      final text = L.t(keys[i]);
+      await speak(text, owner: owner, key: keys[i]);
+      if (i == keys.length - 1) break;
+      if (!enabled || !AppState.I.soundOn) continue;
+      final request = _request;
+      await Voice.finished(Duration(milliseconds: 600 + 90 * text.length));
+      if (request != _request) return;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      if (request != _request) return;
+    }
+  }
+
+  /// [key] verilirse kayıt o adla aranır; verilmezse cümleden bulunur. Aynı
+  /// yazılan iki cümle (ör. oyun adı ve beceri adı) böylece karışmaz.
+  static Future<void> speak(String text, {Object? owner, String? key}) async {
+    key ??= L.voiceKey(text);
     observer?.call(text, key);
     if (!enabled || !AppState.I.soundOn) return;
     _owner = owner;

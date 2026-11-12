@@ -33,11 +33,15 @@ const skills = <Skill>[
     'sort',
     'groups',
     'maze',
+    'jobs',
+    'seasons',
   ]),
   Skill('sk_numbers', Icons.pin_rounded, AppColors.green, [
     'count',
     'shapes',
     'dots',
+    'clock',
+    'letters',
   ]),
   Skill('sk_creative', Icons.brush_rounded, AppColors.pink, [
     'puzzle',

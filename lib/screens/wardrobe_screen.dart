@@ -87,6 +87,7 @@ class WardrobeScreen extends StatelessWidget {
                   aspectRatio: 1,
                   child: SpeakOnce(
                     'wardrobe_hint',
+                    before: 'g_wardrobe',
                     child: worn == null
                         ? const Mascot('hello')
                         : PopIn(

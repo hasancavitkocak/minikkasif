@@ -5,6 +5,7 @@ import '../data/objects.dart';
 import '../l10n.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/legal_dialog.dart';
 import '../widgets/ui.dart';
 import 'home_screen.dart';
 
@@ -20,7 +21,9 @@ class ProfileEdit {
 }
 
 /// Profil ekleme ya da düzenleme penceresi. [profile] boşsa yeni profil.
-/// [firstRun] ilk açılıştaki tanışma sorusudur: vazgeçilemez, başlığı vardır.
+/// [firstRun] ilk açılıştaki kurulumdur: ebeveyne hitap eder, "Şimdi değil"
+/// ile geçilebilir (o zaman oyunlar en kolay seviyeden başlar) ve altında
+/// kullanım koşulları ile gizlilik politikası bağlantıları vardır.
 Future<ProfileEdit?> showProfileDialog(
   BuildContext context, {
   Profile? profile,
@@ -220,6 +223,13 @@ class _ProfileDialogState extends State<_ProfileDialog> {
                             fontSize: 17,
                             onTap: () => Navigator.of(context).pop(),
                           ),
+                        if (firstRun)
+                          BigButton(
+                            label: L.t('not_now'),
+                            color: AppColors.blue,
+                            fontSize: 17,
+                            onTap: () => Navigator.of(context).pop(),
+                          ),
                         BigButton(
                           label: L.t(firstRun ? 'start' : 'save'),
                           fontSize: firstRun ? 20 : 17,
@@ -227,6 +237,19 @@ class _ProfileDialogState extends State<_ProfileDialog> {
                         ),
                       ],
                     ),
+                    if (firstRun) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        L.t('legal_accept'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.3,
+                          color: AppColors.ink.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const LegalLinks(),
+                    ],
                   ],
                 ),
               ),

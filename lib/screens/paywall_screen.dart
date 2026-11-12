@@ -8,6 +8,7 @@ import '../l10n.dart';
 import '../services/purchases.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/legal_dialog.dart';
 import '../widgets/ui.dart';
 
 /// Abonelik ekranı (aylık ve yıllık). Yalnızca ebeveyn kapısından sonra açılır.
@@ -115,14 +116,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
           alignment: WrapAlignment.center,
           children: [
             for (final game in games.where((g) => !g.free))
+              // On altı oyun dörderli dizilir; daha büyük kutular ekranı uzatıp
+              // bütün yazıları küçültüyordu.
               Container(
-                width: 62,
-                height: 62,
-                padding: const EdgeInsets.all(4),
+                width: 46,
+                height: 46,
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: game.color, width: 3),
+                  borderRadius: BorderRadius.circular(11),
+                  border: Border.all(color: game.color, width: 2.5),
                 ),
                 child: GameImage(
                   'assets/images/icons/game_${game.id}.png',
@@ -270,8 +273,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         ),
         const SizedBox(height: 4),
+        // Abonelik satılan ekranda koşullar ve gizlilik politikası görünür.
+        const LegalLinks(fontSize: 14),
+        const SizedBox(height: 4),
         Text(
-          L.t('sub_note'),
+          Purchases.legalText('sub_note'),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 11,

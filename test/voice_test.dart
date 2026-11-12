@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minik_kasif/app_state.dart';
 import 'package:minik_kasif/data/objects.dart';
+import 'package:minik_kasif/data/jobs.dart';
 import 'package:minik_kasif/data/outfits.dart';
+import 'package:minik_kasif/data/seasons.dart';
+import 'package:minik_kasif/data/stories.dart';
+import 'package:minik_kasif/games/letters_game.dart';
 import 'package:minik_kasif/data/stickers.dart';
 import 'package:minik_kasif/games/registry.dart';
 import 'package:minik_kasif/l10n.dart';
@@ -50,8 +54,50 @@ Future<void> close(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 3));
 }
 
-/// Yeni cümlesiyle yeniden kaydedilecek olanlar.
-const pending = {'scene_hint'};
+/// Kaydı beklenen (gelmiş de olabilen) cümleler.
+final pending = <String>{
+  'i_jobs_learn',
+  'i_jobs_find',
+  'i_seasons_learn',
+  'i_seasons_find',
+  for (final job in jobs) ...[job.nameKey, job.textKey],
+  for (final season in seasons) ...[season.id, '${season.id}_d'],
+  'g_shapes',
+  'g_memory',
+  'g_shadow',
+  'g_count',
+  'g_pattern',
+  'g_odd',
+  'g_puzzle',
+  'g_sort',
+  'g_maze',
+  'g_color',
+  'g_groups',
+  'g_simon',
+  'g_diff',
+  'g_dots',
+  'g_jobs',
+  'g_seasons',
+  'g_clock',
+  'g_letters',
+  'g_story',
+  'i_jobs',
+  'i_jobs_rev',
+  'i_seasons',
+  'i_seasons_rev',
+  'i_clock_place',
+  'i_clock_read',
+  'i_clock_set',
+  'i_letters_same',
+  'i_letters_hear',
+  'i_letters_case',
+  'story_hint',
+  'story_end',
+  'g_scene',
+  'g_duel',
+  'g_music',
+  'g_wardrobe',
+};
 
 bool recorded(String key) => [
   'mp3',
@@ -134,19 +180,34 @@ void main() {
     }
     for (final entry in texts.entries) {
       expect(L.voiceKey(entry.value), entry.key, reason: entry.value);
-      // Cümlesi değişen ve yeniden kaydedilmeyi bekleyenler şimdilik makine
-      // sesiyle okunur; eski kayıtları kalmamalıdır.
-      expect(
-        recorded(entry.key),
-        !pending.contains(entry.key),
-        reason: 'kayıt: ${entry.key}',
-      );
+    }
+    // Oyun adları: oyuna girince okunur. Kayıt adı açıkça verilir, çünkü
+    // aynı yazılan başka bir cümle olabilir ("Hafıza" beceri adı da).
+    for (final key in pending) {
+      texts[key] = L.t(key);
+    }
+    for (final entry in texts.entries) {
+      // Kaydı beklenenler şimdilik makine sesiyle okunur; kayıtları parça
+      // parça gelir. Diğerlerinin kaydı olmalıdır.
+      if (pending.contains(entry.key)) continue;
+      expect(recorded(entry.key), isTrue, reason: 'kayıt: ${entry.key}');
     }
     final files = {
       for (final f in Directory('assets/audio/voice/tr').listSync())
         f.uri.pathSegments.last.split('.').first,
     };
-    expect(files.difference(texts.keys.toSet()), isEmpty);
+    // Metni çeviri tablosunda olmayan kayıtlar: harfler, hikâye sayfaları ve
+    // saat oyununun 11 ile 12'si.
+    final extra = {
+      'num_11',
+      'num_12',
+      for (final letter in alphabets['tr']!.$2.split(''))
+        letterVoiceKey(letter),
+      for (final story in stories)
+        for (var page = 0; page < story.pages.length; page++)
+          story.voiceKey(page),
+    };
+    expect(files.difference({...texts.keys, ...extra}), isEmpty);
   });
 
   testWidgets('1. ilk açılış: tanışmanın dört cümlesi sırayla, birer kez', (
@@ -179,7 +240,7 @@ void main() {
   testWidgets('3. bölüm haritası: "bir bölüm seç" bir kez', (tester) async {
     await open(tester, LevelScreen(game: games.first));
     await wait(tester, 3000);
-    expect(spoken, ['pick_level']);
+    expect(spoken, ['g_shapes', 'pick_level']);
     await close(tester);
   });
 
@@ -192,9 +253,27 @@ void main() {
         if (seen) AppState.I.markHowToSeen(game.id);
         await open(tester, game.builder(game, 1));
         await wait(tester, 2000);
-        expect(spoken.length, 1, reason: '${game.id} seen=$seen: $spoken');
-        expect(spoken.single, startsWith('i_'), reason: game.id);
-        expect(recorded(spoken.single), isTrue, reason: spoken.single);
+        // Tanıtım bölümleri yönergenin ardından tanıtılanın adını ve cümlesini
+        // de söyler; onların dışında yalnızca bir yönerge duyulmalı.
+        final lines = [
+          for (final s in spoken)
+            if (s.startsWith('i_')) s,
+        ];
+        final rest = [
+          for (final s in spoken)
+            if (!s.startsWith('i_')) s,
+        ];
+        expect(lines.length, 1, reason: '${game.id} seen=$seen: $spoken');
+        expect(
+          rest.every((s) => s.startsWith('job_') || s.startsWith('season_')),
+          isTrue,
+          reason: '${game.id}: $spoken',
+        );
+        // Kaydı beklenen yönergeler dışında hepsinin kaydı olmalı; bekleyenler
+        // kayıt gelene dek makine sesiyle okunur.
+        if (!pending.contains(lines.single)) {
+          expect(recorded(lines.single), isTrue, reason: lines.single);
+        }
         await close(tester);
       }
     }
@@ -215,7 +294,7 @@ void main() {
   }
 
   testWidgets(
-    '5. bölüm sonu: övgü, sonra "yeni çıkartma"; sonraki bölümün yönergesi kesilmez',
+    '5. bölüm sonu: yalnızca övgü, çıkartma sesli duyurulmaz; sonraki bölümün yönergesi kesilmez',
     (tester) async {
       AppState.I.markHowToSeen(games.first.id);
       await open(tester, quickLevel());
@@ -224,24 +303,25 @@ void main() {
       await wait(tester, 1300);
       expect(spoken.length, 2);
       expect(spoken.last, startsWith('praise_'));
+      // Çıkartma kazanılsa da sesli duyurulmaz.
       await wait(tester, 1800);
-      expect(spoken.last, 'new_sticker');
-      expect(spoken.length, 3);
+      expect(spoken.contains('new_sticker'), isFalse, reason: '$spoken');
+      expect(spoken.length, 2);
       // Sonraki bölüme geçiş: yalnızca yeni bölümün yönergesi söylenir.
       await tester.tap(find.byType(RoundButton).last);
       await wait(tester, 4000);
-      expect(spoken.length, 4, reason: '$spoken');
+      expect(spoken.length, 3, reason: '$spoken');
       expect(spoken.last, startsWith('i_shapes'));
       // Kapanan eski bölüm, yeni bölümün yönergesini susturmamış olmalı:
       // son olay bir "sus" değil, yönergenin kendisidir.
       expect(events.last, startsWith('i_shapes'), reason: '$events');
       await close(tester);
-      expect(spoken.length, 4, reason: '$spoken');
+      expect(spoken.length, 3, reason: '$spoken');
     },
   );
 
   testWidgets(
-    '5b. çıkartma duyurusu beklemeden geçilirse eski duyuru araya girmez',
+    '5b. bölüm sonu beklemeden geçilirse araya eski bir duyuru girmez',
     (tester) async {
       AppState.I.markHowToSeen(games.first.id);
       await open(tester, quickLevel());
@@ -273,7 +353,7 @@ void main() {
     (tester) async {
       await open(tester, const SceneScreen());
       await wait(tester, 3000);
-      expect(spoken, ['scene_hint']);
+      expect(spoken, ['g_scene', 'scene_hint']);
       String saved() => AppState.I.profileData('scene') ?? '';
       // Sayfanın ortasında bir çizgi çiz.
       final page = tester.getCenter(find.byType(CustomPaint).last);
@@ -290,7 +370,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.delete_rounded));
       await wait(tester, 300);
       expect(saved(), contains('"strokes":[]'));
-      expect(spoken, ['scene_hint']);
+      expect(spoken, ['g_scene', 'scene_hint']);
       await close(tester);
     },
   );
@@ -300,17 +380,17 @@ void main() {
   ) async {
     await open(tester, const MusicScreen());
     await wait(tester, 3000);
-    expect(spoken, ['i_music']);
+    expect(spoken, ['g_music', 'i_music']);
     await tester.tap(find.text('⭐'));
     await wait(tester);
-    expect(spoken, ['i_music', 'music_follow']);
+    expect(spoken, ['g_music', 'i_music', 'music_follow']);
     await close(tester);
   });
 
   testWidgets('7c. dolap ve belge', (tester) async {
     await open(tester, const WardrobeScreen());
     await wait(tester, 3000);
-    expect(spoken, ['wardrobe_hint']);
+    expect(spoken, ['g_wardrobe', 'wardrobe_hint']);
     await close(tester);
 
     spoken.clear();

@@ -272,7 +272,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? Icons.check_circle_rounded
                   : Icons.card_giftcard_rounded,
               color: state.dailyComplete ? AppColors.green : AppColors.red,
-              label: L.t('daily'),
+              // Hedefe ulaşılana kadar bugünkü yıldız sayısı da görünür.
+              label: state.dailyComplete || state.dailyStars == 0
+                  ? L.t('daily')
+                  : '${L.t('daily')}  ${state.dailyStars}/${AppState.dailyGoal}',
               pulse: !state.dailyComplete,
               onTap: () => _push(const DailyScreen()),
             ),
@@ -402,15 +405,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// İki sıralı, yana kaydırılan oyun kartları.
+  /// Alan yeterince yüksekse (tabletler) üç, değilse (telefonlar) iki sıra.
+  /// Üç sırada kart en az 150 birim yüksek kalmalıdır; daha küçüğü küçük
+  /// parmaklar için dar bir hedeftir.
+  static int rowsFor(double height) =>
+      (height - _gridTop - _gridGap * 2 - 8) / 3 >= 150 ? 3 : 2;
+
+  static const _gridGap = 12.0;
+  static const _gridTop = 10.0;
+
+  /// Yana kaydırılan oyun kartları.
   Widget _grid(BuildContext context, BoxConstraints box) {
-    const gap = 12.0;
-    const topPad = 10.0;
-    final cardHeight = (box.maxHeight - topPad - gap - 8) / 2;
+    const gap = _gridGap;
+    const topPad = _gridTop;
+    final rows = rowsFor(box.maxHeight);
+    final cardHeight = (box.maxHeight - topPad - gap * (rows - 1) - 8) / rows;
     // Dördüncü sütundan sonrası yarım görünür; kaydırılabildiği anlaşılır.
     final cardWidth = min(cardHeight * 1.05, (box.maxWidth - gap * 4) / 4.4);
     final entries = [...games, ...activities];
-    final columns = (entries.length / 2).ceil();
+    final columns = (entries.length / rows).ceil();
     return Stack(
       children: [
         SingleChildScrollView(
@@ -426,12 +439,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     children: [
                       for (
-                        var i = c * 2;
-                        i < min(c * 2 + 2, entries.length);
+                        var i = c * rows;
+                        i < min(c * rows + rows, entries.length);
                         i++
                       )
                         Padding(
-                          padding: EdgeInsets.only(top: i.isEven ? 0 : gap),
+                          padding: EdgeInsets.only(
+                            top: i % rows == 0 ? 0 : gap,
+                          ),
                           child: PopIn(
                             delay: i,
                             child: _card(entries[i], cardWidth, cardHeight),

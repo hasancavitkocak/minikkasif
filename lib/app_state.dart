@@ -60,6 +60,12 @@ class AppState extends ChangeNotifier {
   List<DailyTask> _dailyTasks = [];
   Set<int> dailyDone = {};
 
+  /// Günün macerasında toplanması gereken yıldız sayısı.
+  static const dailyGoal = 10;
+  int _dailyStars = 0;
+  String? _dailySticker;
+  int _dailyRound = 0;
+
   Profile get profile => profiles.firstWhere(
     (p) => p.id == _currentId,
     orElse: () => profiles.first,
@@ -79,6 +85,8 @@ class AppState extends ChangeNotifier {
     lang =
         prefs.getString('lang') ??
         (L.languages.containsKey(device) ? device : 'en');
+    // Kaldırılan bir dil kayıtlıysa İngilizceye dönülür.
+    if (!L.languages.containsKey(lang)) lang = 'en';
     soundOn = prefs.getBool('soundOn') ?? true;
     musicOn = prefs.getBool('musicOn') ?? true;
     premium = prefs.getBool('premium') ?? false;
@@ -110,6 +118,9 @@ class AppState extends ChangeNotifier {
     _dailyDate = '';
     _dailyTasks = [];
     dailyDone = {};
+    _dailyStars = 0;
+    _dailySticker = null;
+    _dailyRound = 0;
     if (prefs == null) return;
     final rawStars = prefs.getString(_k('stars'));
     if (rawStars != null) {
@@ -138,6 +149,9 @@ class AppState extends ChangeNotifier {
           DailyTask(t[0] as String, t[1] as int),
       ];
       dailyDone = {for (final i in daily['done'] as List<dynamic>) i as int};
+      _dailyStars = daily['stars'] as int? ?? 0;
+      _dailySticker = daily['sticker'] as String?;
+      _dailyRound = daily['round'] as int? ?? 0;
     }
   }
 
@@ -198,7 +212,11 @@ class AppState extends ChangeNotifier {
 
   /// Üç yıldız için tanınan fazladan hata hakkı: 3 yaşındaki çocuğa bir hata
   /// daha hoş görülür. Oyunların içeriği yaşa göre değişmez.
-  int get extraTolerance => profile.age == 3 ? 1 : 0;
+  int get extraTolerance => playAge == 3 ? 1 : 0;
+
+  /// Zorluğun ayarlandığı yaş. Yaş girilmediyse en küçük yaş (3) sayılır;
+  /// yani oyunlar en kolay haliyle başlar.
+  int get playAge => profile.age == 0 ? 3 : profile.age;
 
   /// Bir bölümün yıldızı: [tolerance] hataya kadar 3, üç katına kadar 2.
   int starsFor(int mistakes, int tolerance) {
@@ -339,26 +357,29 @@ class AppState extends ChangeNotifier {
     _prefs?.setString(_k('plays'), jsonEncode(_plays));
 
     Sticker? sticker;
-    // İlk 10 bölümün her biri, sonrasında her üç yeni bölümden biri çıkartma verir.
-    if (first && (completedLevels <= 10 || completedLevels % 3 == 0)) {
+    // Bölüm sonu çıkartması seyrektir: ilk bölüm (albümle tanışma) ve
+    // sonrasında her beş yeni bölümden biri. Asıl kaynak günün macerasıdır.
+    if (first && (completedLevels == 1 || completedLevels % 5 == 0)) {
       sticker = _awardSticker();
     }
-    if (_dailyDate == today) {
-      for (var i = 0; i < _dailyTasks.length; i++) {
-        final task = _dailyTasks[i];
-        if (!dailyDone.contains(i) &&
-            task.gameId == gameId &&
-            task.level == level) {
-          dailyDone.add(i);
-          // Günün macerası tamamlanınca fazladan bir çıkartma.
-          if (dailyDone.length == _dailyTasks.length) {
-            sticker ??= _awardSticker();
-          }
-          _saveDaily();
-          break;
-        }
+    // Günün macerası: hangi oyun olursa olsun bugün kazanılan yıldızlar
+    // sayılır; hedefe ulaşılınca günün çıkartması verilir.
+    _startDay();
+    final wasComplete = dailyComplete;
+    _dailyStars += value;
+    for (var i = 0; i < _dailyTasks.length; i++) {
+      final task = _dailyTasks[i];
+      if (!dailyDone.contains(i) &&
+          task.gameId == gameId &&
+          task.level == level) {
+        dailyDone.add(i);
+        break;
       }
     }
+    if (!wasComplete && dailyComplete) {
+      sticker = _awardSticker(prefer: _dailySticker) ?? sticker;
+    }
+    _saveDaily();
     notifyListeners();
     return sticker;
   }
@@ -370,6 +391,9 @@ class AppState extends ChangeNotifier {
     _dailyDate = '';
     _dailyTasks = [];
     dailyDone = {};
+    _dailyStars = 0;
+    _dailySticker = null;
+    _dailyRound = 0;
     for (final key in [
       'stars',
       'stickers',
@@ -386,13 +410,17 @@ class AppState extends ChangeNotifier {
 
   // ---- Çıkartmalar ----
 
-  Sticker? _awardSticker() {
+  /// Eksik çıkartmalardan birini verir; [prefer] hâlâ eksikse onu.
+  Sticker? _awardSticker({String? prefer}) {
     final missing = [
       for (final s in allStickers)
         if (!stickers.contains(s.id)) s,
     ];
     if (missing.isEmpty) return null;
-    final sticker = missing[Random().nextInt(missing.length)];
+    final sticker = missing.firstWhere(
+      (s) => s.id == prefer,
+      orElse: () => missing[Random().nextInt(missing.length)],
+    );
     stickers = [...stickers, sticker.id];
     _prefs?.setStringList(_k('stickers'), stickers);
     return sticker;
@@ -409,24 +437,61 @@ class AppState extends ChangeNotifier {
           for (final t in _dailyTasks) [t.gameId, t.level],
         ],
         'done': dailyDone.toList(),
+        'stars': _dailyStars,
+        'sticker': _dailySticker,
+        'round': _dailyRound,
       }),
     );
   }
 
-  /// Bugünün üç görevi. Gün içinde sabit kalır; ertesi gün yenilenir.
+  /// Yeni bir güne girildiyse sayaçları sıfırlar ve günün çıkartmasını seçer.
+  void _startDay() {
+    final today = _today();
+    if (_dailyDate == today) return;
+    _dailyDate = today;
+    _dailyTasks = [];
+    dailyDone = {};
+    _dailyStars = 0;
+    _dailyRound = 0;
+    final missing = [
+      for (final s in allStickers)
+        if (!stickers.contains(s.id)) s.id,
+    ];
+    _dailySticker = missing.isEmpty
+        ? null
+        : missing[Random(today.hashCode + _currentId).nextInt(missing.length)];
+  }
+
+  /// Bugün toplanan yıldız (en çok [dailyGoal] gösterilir).
+  int get dailyStars =>
+      _dailyDate == _today() ? min(_dailyStars, dailyGoal) : 0;
+
+  /// Bugünün ödülü olan çıkartma; albüm dolduysa null.
+  Sticker? get dailySticker {
+    if (_dailyDate != _today()) return null;
+    for (final s in allStickers) {
+      if (s.id == _dailySticker) return s;
+    }
+    return null;
+  }
+
+  /// Bugün için önerilen üç bölüm. Üçü de bitip hedefe hâlâ ulaşılmadıysa
+  /// yeni üç bölüm önerilir; hedefe ulaşılınca sabit kalır.
   List<DailyTask> dailyTasks(List<GameDef> games) {
     final today = _today();
     final playable = games;
+    _startDay();
+    final spent = dailyDone.length >= 3 && !dailyComplete;
+    if (spent) _dailyRound++;
     final valid =
-        _dailyDate == today &&
+        !spent &&
         _dailyTasks.length == 3 &&
         _dailyTasks.every(
           (t) => games.any((g) => g.id == t.gameId && canPlay(g, t.level)),
         );
     if (!valid && playable.isNotEmpty) {
-      final rng = Random(today.hashCode + _currentId);
+      final rng = Random(today.hashCode + _currentId + _dailyRound * 31);
       final order = [...playable]..shuffle(rng);
-      _dailyDate = today;
       dailyDone = {};
       _dailyTasks = [
         for (var i = 0; i < 3; i++)
@@ -453,8 +518,9 @@ class AppState extends ChangeNotifier {
     return _dailyTasks;
   }
 
-  /// Günün macerasında sıradaki görev; hepsi bittiyse null.
+  /// Günün macerasında sıradaki önerilen bölüm; hedefe ulaşıldıysa null.
   DailyTask? nextDailyTask(List<GameDef> games) {
+    if (dailyComplete) return null;
     final tasks = dailyTasks(games);
     for (var i = 0; i < tasks.length; i++) {
       if (!dailyDone.contains(i)) return tasks[i];
@@ -462,7 +528,7 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
-  bool get dailyComplete => _dailyDate == _today() && dailyDone.length >= 3;
+  bool get dailyComplete => _dailyDate == _today() && _dailyStars >= dailyGoal;
 
   // ---- Rapor ----
 
