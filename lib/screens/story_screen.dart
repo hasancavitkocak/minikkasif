@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
@@ -90,19 +93,35 @@ class _StoryScreenState extends State<StoryScreen> {
                   Expanded(
                     child: ListenableBuilder(
                       listenable: AppState.I,
-                      builder: (context, _) => Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (var i = 0; i < stories.length; i++)
-                            Flexible(
-                              child: Padding(
+                      // Hikâyeler yana kaydırılır; en az iki buçuk kart
+                      // görünür ki sağda daha fazlası olduğu anlaşılsın.
+                      builder: (context, _) => LayoutBuilder(
+                        builder: (context, box) {
+                          const gap = 20.0;
+                          final height = min(
+                            box.maxHeight,
+                            (box.maxWidth - gap * 2) / 2.5 / 1.25,
+                          );
+                          return Center(
+                            child: SizedBox(
+                              height: height,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
+                                  horizontal: 6,
                                 ),
-                                child: _card(i),
+                                itemCount: stories.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(width: gap),
+                                itemBuilder: (context, i) => SizedBox(
+                                  width: height * 1.25,
+                                  child: _card(i),
+                                ),
                               ),
                             ),
-                        ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -239,17 +258,38 @@ class _StoryReaderState extends State<StoryReader> {
 
   @override
   void dispose() {
+    _safety?.cancel();
     Tts.stopFor(this);
     super.dispose();
   }
 
-  /// Açık sayfayı sesli okur.
-  void _read() {
-    Tts.speak(story.text(_page), owner: this, key: story.voiceKey(_page));
+  /// İleri düğmesi sayfa okunup bitince açılır; ses kapalıysa beklenmez.
+  bool _ready = false;
+  int _readId = 0;
+  Timer? _safety;
+
+  /// Açık sayfayı sesli okur; bitince ileri düğmesini açar.
+  Future<void> _read() async {
+    final id = ++_readId;
+    final text = story.text(_page);
+    if (!Tts.enabled || !AppState.I.soundOn) {
+      setState(() => _ready = true);
+      return;
+    }
+    _safety?.cancel();
+    _safety = Timer(const Duration(seconds: 15), () {
+      if (mounted && id == _readId) setState(() => _ready = true);
+    });
+    await Tts.speak(text, owner: this, key: story.voiceKey(_page));
+    await Voice.finished(Duration(milliseconds: 800 + 75 * text.length));
+    if (mounted && id == _readId) setState(() => _ready = true);
   }
 
   void _go(int page) {
-    setState(() => _page = page);
+    setState(() {
+      _page = page;
+      _ready = false;
+    });
     _read();
   }
 
@@ -282,6 +322,8 @@ class _StoryReaderState extends State<StoryReader> {
                                 : RoundButton(
                                     icon: Icons.arrow_back_ios_new_rounded,
                                     color: AppColors.blue,
+                                    asset: 'btn_next',
+                                    mirror: true,
                                     onTap: () => _go(_page - 1),
                                   ),
                           ),
@@ -325,6 +367,8 @@ class _StoryReaderState extends State<StoryReader> {
                                 ? Icons.check_rounded
                                 : Icons.arrow_forward_ios_rounded,
                             color: _last ? AppColors.green : AppColors.blue,
+                            asset: _last ? 'btn_done' : 'btn_next',
+                            enabled: _ready,
                             onTap: () => _last
                                 ? Navigator.of(context).pop(true)
                                 : _go(_page + 1),
@@ -365,6 +409,7 @@ class _StoryReaderState extends State<StoryReader> {
                         RoundButton(
                           icon: Icons.volume_up_rounded,
                           color: AppColors.orange,
+                          asset: 'btn_sound_on',
                           size: 44,
                           onTap: _read,
                         ),

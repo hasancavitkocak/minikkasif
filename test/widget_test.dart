@@ -3,7 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minik_kasif/app_state.dart';
+import 'package:minik_kasif/data/animals.dart';
 import 'package:minik_kasif/data/objects.dart';
+import 'package:minik_kasif/data/produce.dart';
+import 'package:minik_kasif/games/animals_game.dart';
+import 'package:minik_kasif/games/fruits_game.dart';
 import 'package:minik_kasif/games/game_def.dart';
 import 'package:minik_kasif/data/jobs.dart';
 import 'package:minik_kasif/data/seasons.dart';
@@ -23,8 +27,12 @@ import 'package:minik_kasif/screens/parent_gate.dart';
 import 'package:minik_kasif/screens/parents_screen.dart';
 import 'package:minik_kasif/screens/paywall_screen.dart';
 import 'package:minik_kasif/screens/report_screen.dart';
+import 'package:minik_kasif/screens/profile_dialog.dart';
+import 'package:minik_kasif/screens/welcome_screen.dart';
+import 'package:minik_kasif/screens/who_screen.dart';
 import 'package:minik_kasif/services/audio.dart';
 import 'package:minik_kasif/services/purchases.dart';
+import 'package:minik_kasif/widgets/common.dart';
 import 'package:minik_kasif/widgets/game_shell.dart';
 import 'package:minik_kasif/widgets/intro.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,6 +59,11 @@ Future<void> unmount(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());
   await tester.pump(const Duration(seconds: 3));
 }
+
+/// Pencerelerin kapatma (X) düğmesi; görseli olsa da olmasa da bulunur.
+final closeButton = find.byWidgetPredicate(
+  (w) => w is RoundButton && w.icon == Icons.close_rounded,
+);
 
 void main() {
   setUp(() async {
@@ -123,7 +136,7 @@ void main() {
   firstRunTests();
 
   test('ilk iki oyun ve her oyunun ilk bölümü ücretsiz', () {
-    expect(games.length, 18);
+    expect(games.length, 20);
     expect(games.where((g) => g.free).map((g) => g.id), ['shapes', 'memory']);
     // Diğer oyunların yalnızca ilk bölümü aboneliksiz oynanır.
     final state = AppState.I;
@@ -159,6 +172,55 @@ void main() {
     expect(SeasonsGame.modeOf(2), SeasonsMode.dress);
     expect(SeasonsGame.modeOf(6), SeasonsMode.find);
     expect(SeasonsGame.modeOf(10), SeasonsMode.season);
+
+    // Hayvanlar: her hayvan bir kez tanıtılır; sesleri yazıyla da okunabilir.
+    expect(
+      {
+        for (var l = 1; l <= 2; l++)
+          for (final a in AnimalsGame.learnSet(l)) a.key,
+      }.length,
+      animals.length,
+    );
+    expect(AnimalsGame.modeOf(1), AnimalsMode.learn);
+    expect(AnimalsGame.modeOf(3), AnimalsMode.find);
+    expect(AnimalsGame.modeOf(10), AnimalsMode.sound);
+    // Meyve ve sebze: her ürün bir kez tanıtılır; her renkte en az iki ürün,
+    // ağaçta ve tarlada yetişenlerden yeterince ürün vardır.
+    expect(
+      {
+        for (var l = 1; l <= 3; l++)
+          for (final p in FruitsGame.learnSet(l)) p.key,
+      }.length,
+      produce.length,
+    );
+    for (final color in ProduceColor.values) {
+      expect(
+        produce.where((p) => p.color == color).length,
+        greaterThanOrEqualTo(2),
+        reason: color.name,
+      );
+    }
+    expect(produce.where((p) => p.grow == Grow.tree).length, greaterThan(3));
+    expect(
+      produce.where((p) => p.grow == Grow.field || p.grow == Grow.under).length,
+      greaterThan(3),
+    );
+    expect(FruitsGame.modeOf(1), FruitsMode.learn);
+    expect(FruitsGame.modeOf(6), FruitsMode.color);
+    expect(FruitsGame.modeOf(8), FruitsMode.kind);
+    expect(FruitsGame.modeOf(10), FruitsMode.tree);
+    // Her yeni metnin beş dilde de çevirisi vardır.
+    for (final lang in L.languages.keys) {
+      AppState.I.setLang(lang);
+      for (final key in [
+        for (final a in animals) ...[a.nameKey, a.textKey, a.soundKey],
+        for (final p in produce) ...[p.nameKey, p.kindKey, p.growKey],
+        for (final c in ProduceColor.values) c.instructionKey,
+      ]) {
+        expect(L.t(key), isNot(key), reason: '$lang $key');
+      }
+    }
+    AppState.I.setLang('tr');
     // Hikâyelerin her sayfası her dilde yazılı, her sayfanın simgesi var.
     for (final story in stories) {
       expect(story.emojis.length, story.pages.length, reason: story.id);
@@ -337,12 +399,173 @@ void main() {
       await settle(tester);
       expect(find.text('Yalnızca yetişkinler'), findsOneWidget);
       expect(find.byType(PaywallScreen), findsNothing);
-      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.tap(closeButton);
       await settle(tester);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     },
   );
+
+  testWidgets('ücretsiz deneme: süre ve sonraki ücret açıkça yazılır', (
+    tester,
+  ) async {
+    addTearDown(() => Purchases.I.debugSetTrial(Purchases.yearlyId, 0));
+    for (final lang in L.languages.keys) {
+      AppState.I.setLang(lang);
+      for (final size in screens.values) {
+        // Deneme yokken: düğme "Devam", deneme notu görünmez.
+        Purchases.I.debugSetTrial(Purchases.yearlyId, 0);
+        await pumpScreen(tester, size, const PaywallScreen());
+        await settle(tester);
+        expect(find.byKey(const ValueKey('trial_note')), findsNothing);
+        expect(find.text(L.t('trial_start')), findsNothing);
+        // Yıllık planda 7 günlük deneme: rozet, düğme ve açıklama görünür.
+        Purchases.I.debugSetTrial(Purchases.yearlyId, 7);
+        await settle(tester);
+        expect(find.byKey(const ValueKey('trial_note')), findsOneWidget);
+        expect(find.text(L.t('trial_start')), findsOneWidget);
+        expect(
+          find.text(L.t('trial_badge').replaceAll('{days}', '7')),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull, reason: '$lang $size');
+        // Aylık plan seçilince deneme notu kalkar (onda deneme yok).
+        await tester.tap(find.text(L.t('monthly')));
+        await settle(tester);
+        expect(find.byKey(const ValueKey('trial_note')), findsNothing);
+        expect(find.text(L.t('trial_start')), findsNothing);
+        expect(tester.takeException(), isNull, reason: '$lang $size');
+        await unmount(tester);
+      }
+    }
+    AppState.I.setLang('tr');
+  });
+
+  testWidgets('iki profil varsa açılışta "Kim oynuyor?" sorulur', (
+    tester,
+  ) async {
+    // Tek profilde soru sorulmaz, doğrudan ana ekrana geçilir.
+    expect(WhoScreen.next(), isA<HomeScreen>());
+    AppState.I.addProfile('Elif', 'rabbit', 4);
+    final elif = AppState.I.profiles.last;
+    expect(WhoScreen.next(), isA<WhoScreen>());
+    for (final size in screens.values) {
+      await pumpScreen(tester, size, const WelcomeScreen());
+      await settle(tester);
+      await tester.tap(find.byType(WelcomeScreen));
+      await settle(tester);
+      expect(find.byType(WhoScreen), findsOneWidget);
+      expect(find.text(L.t('who_plays')), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: '$size');
+      await tester.tap(find.byKey(ValueKey('who_${elif.id}')));
+      await settle(tester);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(AppState.I.profile.id, elif.id);
+      await unmount(tester);
+    }
+  });
+
+  testWidgets('gelişim raporu her çocuk için ayrı; oynayan çocuk değişmez', (
+    tester,
+  ) async {
+    final state = AppState.I;
+    state.finishLevel('shapes', 1, 3);
+    final first = state.profile;
+    state.addProfile('Elif', 'rabbit', 4);
+    final elif = state.profile;
+    // Elif henüz oynamadı; ilk çocuğun yıldızları ondan okunur ama oynayan
+    // çocuk Elif kalır.
+    expect(state.allStars, 0);
+    expect(state.peekProfile(first.id, () => state.allStars), 3);
+    expect(state.profile.id, elif.id);
+    expect(state.allStars, 0);
+    for (final size in screens.values) {
+      await pumpScreen(tester, size, ReportScreen(profileId: first.id));
+      await settle(tester);
+      expect(find.textContaining(state.profileName(first)), findsWidgets);
+      await tester.tap(find.byKey(ValueKey('report_${elif.id}')));
+      await settle(tester);
+      expect(find.textContaining('Elif'), findsWidgets);
+      expect(state.profile.id, elif.id);
+      expect(tester.takeException(), isNull, reason: '$size');
+      // Ebeveyn alanının rapor sekmesi iki çocukla da sığar.
+      await pumpScreen(tester, size, const ParentsScreen(initialTab: 4));
+      await settle(tester);
+      await tester.tap(find.byKey(ValueKey('preport_${first.id}')));
+      await settle(tester);
+      expect(state.profile.id, elif.id);
+      expect(tester.takeException(), isNull, reason: 'rapor sekmesi $size');
+      await unmount(tester);
+    }
+  });
+
+  testWidgets('çocuk eklerken yaş notu görünür, ilk kurulumda görünmez', (
+    tester,
+  ) async {
+    for (final size in screens.values) {
+      for (final firstRun in [false, true]) {
+        await pumpScreen(
+          tester,
+          size,
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showProfileDialog(context, firstRun: firstRun),
+              child: const Text('aç'),
+            ),
+          ),
+        );
+        await tester.tap(find.text('aç'));
+        await settle(tester);
+        expect(
+          find.byKey(const ValueKey('age_hint')),
+          firstRun ? findsNothing : findsOneWidget,
+        );
+        expect(tester.takeException(), isNull, reason: '$size $firstRun');
+        await unmount(tester);
+      }
+    }
+  });
+
+  testWidgets('son bölüm bitince madalya; albümde Madalyalar sayfası', (
+    tester,
+  ) async {
+    final game = games.firstWhere((g) => g.id == 'jobs');
+    AppState.I.markHowToSeen(game.id);
+    for (var level = 1; level < game.levels; level++) {
+      AppState.I.finishLevel(game.id, level, 3);
+    }
+    await pumpScreen(
+      tester,
+      screens['tablet']!,
+      GameShell(
+        game: game,
+        level: game.levels,
+        rounds: 1,
+        instruction: (_) => 'deneme',
+        roundBuilder: (round, onSolved, onMistake) => Center(
+          child: TextButton(onPressed: onSolved, child: const Text('bitir')),
+        ),
+      ),
+    );
+    await settle(tester);
+    await tester.tap(find.text('bitir'));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.byKey(const ValueKey('new_medal')), findsOneWidget);
+    expect(find.text(L.t('new_medal')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await unmount(tester);
+    for (final size in screens.values) {
+      await pumpScreen(tester, size, const AlbumScreen());
+      await settle(tester);
+      await tester.tap(find.text(L.t('page_medals')));
+      await settle(tester);
+      expect(find.byKey(ValueKey('medal_${game.id}')), findsOneWidget);
+      expect(find.text('1/${games.length}'), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: '$size');
+      await unmount(tester);
+    }
+  });
 
   testWidgets('abonelikte kilitli oyunlar açılır', (tester) async {
     AppState.I.setPremium(true);
@@ -407,14 +630,39 @@ void rewardTests() {
     expect(state.stickers.length, count);
   });
 
-  test('bölüm sonu çıkartması seyrektir: ilk bölüm, sonra beş bölümde bir', () {
+  test('bölüm sonu çıkartması günün ödülünü almaz', () {
+    final state = AppState.I;
+    for (var i = 0; i < 30; i++) {
+      state.resetProgress();
+      state.dailyTasks(games);
+      final reward = state.dailySticker!;
+      // İlk bölüm her zaman bir çıkartma verir; günün ödülü olmamalı.
+      final first = state.finishLevel('maze', 1, 1);
+      expect(first, isNotNull);
+      expect(first!.id, isNot(reward.id));
+    }
+  });
+
+  test('bölüm sonunda yalnızca ilk bölüm çıkartma verir', () {
     final state = AppState.I;
     expect(state.finishLevel('shapes', 1, 1), isNotNull);
-    expect(state.finishLevel('shapes', 2, 1), isNull);
-    expect(state.finishLevel('shapes', 3, 1), isNull);
-    expect(state.finishLevel('shapes', 4, 1), isNull);
-    expect(state.finishLevel('shapes', 5, 1), isNotNull);
-    expect(state.stickers.length, 2);
+    for (var level = 2; level <= 9; level++) {
+      expect(state.finishLevel('shapes', level, 1), isNull);
+    }
+    expect(state.stickers.length, 1);
+  });
+
+  test('oyunun bütün bölümleri bitince madalya kazanılır', () {
+    final state = AppState.I;
+    final game = games.firstWhere((g) => g.id == 'jobs');
+    for (var level = 1; level < game.levels; level++) {
+      state.finishLevel(game.id, level, 2);
+      expect(state.gameComplete(game), isFalse);
+    }
+    state.finishLevel(game.id, game.levels, 1);
+    expect(state.gameComplete(game), isTrue);
+    // Etkinliklerin bölümü yoktur, madalyaları da yoktur.
+    expect(state.gameComplete(activities.first), isFalse);
   });
 
   test('profillerin ilerlemesi birbirinden ayrıdır', () async {
@@ -555,8 +803,8 @@ void firstRunTests() {
     // Kullanım koşulları ilk kurulumdan okunabilir.
     await tester.tap(find.text(L.t('terms')));
     await settle(tester);
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    expect(closeButton, findsOneWidget);
+    await tester.tap(closeButton);
     await settle(tester);
     await tester.tap(find.text(L.t('not_now')));
     await settle(tester);
@@ -700,5 +948,29 @@ void gateTests() {
       findsNothing,
       reason: 'altta eski pencere kalmamalı',
     );
+  });
+  testWidgets('profil adına dokununca profil penceresi, düzenleme kapıdan', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(home: HomeScreen(key: UniqueKey())));
+    await settle(tester);
+    // Tek profil olsa da pencere açılır ve düzenleme düğmesi görünür.
+    await tester.tap(find.text(AppState.I.profileName(AppState.I.profile)));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('edit_profiles')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('edit_profiles')));
+    await settle(tester);
+    // Profil düzenleme yalnızca ebeveyn kapısından geçince açılır.
+    expect(find.text(L.t('gate_title')), findsOneWidget);
+    expect(find.byKey(const ValueKey('edit_profiles')), findsNothing);
+    final question = gateQuestion(tester);
+    await gateAnswer(tester, '${question.$1 * question.$2}');
+    await settle(tester);
+    expect(find.byType(ParentsScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await unmount(tester);
   });
 }

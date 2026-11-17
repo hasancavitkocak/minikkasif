@@ -25,6 +25,53 @@ class Sfx {
   }
 }
 
+/// Hayvan sesleri: `assets/audio/animals/<anahtar>.mp3`. Kaydı henüz yoksa
+/// sesin yazılışı (ör. "Miyav miyav!") konuşma gibi okunur; oyun sessiz kalmaz.
+class AnimalSound {
+  static AudioPlayer? _player;
+  static Set<String>? _files;
+
+  /// Testler için: çalınması istenen her hayvan sesi bildirilir.
+  static void Function(String key)? observer;
+
+  /// [key] hayvanının sesini çalar; kaydı yoksa [fallbackKey] cümlesini okur.
+  static Future<void> play(
+    String key,
+    String fallbackKey, {
+    Object? owner,
+  }) async {
+    observer?.call(key);
+    if (!AppState.I.soundOn) return;
+    String? path;
+    if (Sfx.enabled) {
+      try {
+        final files = _files ??= {
+          ...(await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets(),
+        };
+        final candidate = 'audio/animals/$key.mp3';
+        if (files.contains('assets/$candidate')) path = candidate;
+      } catch (_) {}
+    }
+    if (path == null) {
+      await Tts.speak(L.t(fallbackKey), owner: owner, key: fallbackKey);
+      return;
+    }
+    try {
+      // Konuşma sürüyorsa kesilir; ses ile konuşma üst üste binmesin.
+      await Tts.stop();
+      final player = _player ??= AudioPlayer();
+      await player.stop();
+      await player.play(AssetSource(path));
+    } catch (_) {}
+  }
+
+  static Future<void> stop() async {
+    try {
+      await _player?.stop();
+    } catch (_) {}
+  }
+}
+
 /// Arka plan müziği (assets/audio/music.wav), kısık sesle döngüde çalar.
 class Music {
   static bool enabled = true;

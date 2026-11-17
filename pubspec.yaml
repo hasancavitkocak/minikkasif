@@ -52,6 +52,7 @@ flutter:
     - assets/images/seasons/
     - assets/images/stories/
     - assets/audio/
+    - assets/audio/animals/
     - assets/audio/voice/tr/
     - assets/audio/voice/en/
     - assets/audio/voice/de/

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+{{HEAD}}
+<title>Minik Kaşif</title>
+<style>
+@font-face { font-family: Kasif; src: url(data:font/ttf;base64,{{FONT}}) format("truetype"); font-weight: 800; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #8fd16a; touch-action: none; }
+body { font-family: Kasif, "Arial Rounded MT Bold", Arial, sans-serif; font-weight: 800; color: #3b2a20; }
+#stage { position: fixed; inset: 0; background: url({{IMG_bg}}) center / cover no-repeat;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 2vmin; }
+#top { display: flex; align-items: center; gap: 1.5vmin; }
+#fox { width: var(--fox); height: var(--fox); }
+#bubble { background: #fff; border: 0.6vmin solid #ff9f43; border-radius: 3vmin; padding: 1.2vmin 2.4vmin;
+  font-size: var(--text); box-shadow: 0 0.6vmin 0 rgba(0,0,0,.12); }
+#stars { position: fixed; top: 2vmin; right: 2vmin; display: flex; gap: .6vmin; background: rgba(255,255,255,.75);
+  border-radius: 4vmin; padding: .8vmin 1.4vmin; }
+#stars span { width: var(--star); height: var(--star); background: url({{IMG_star_empty}}) center / contain no-repeat; }
+#stars span.on { background-image: url({{IMG_star_full}}); animation: pop .5s ease-out; }
+#slots { display: flex; gap: var(--gap); }
+.slot { width: var(--card); height: var(--card); border-radius: 3.5vmin; background: rgba(255,255,255,.85);
+  box-shadow: 0 0.8vmin 0 rgba(0,0,0,.12); display: grid; place-items: center; position: relative; }
+.slot img { width: 82%; height: 82%; object-fit: contain; filter: brightness(0) opacity(.55); pointer-events: none; }
+.slot.done img { filter: none; animation: pop .45s ease-out; }
+.slot.hover { outline: 0.8vmin dashed #ff9f43; }
+.slot.wrong { animation: shake .45s; }
+#tray { width: calc(var(--card) * 1.15); height: calc(var(--card) * 1.15); border-radius: 50%;
+  background: rgba(255,255,255,.55); display: grid; place-items: center; }
+#piece { width: var(--card); height: var(--card); object-fit: contain; cursor: grab; touch-action: none;
+  filter: drop-shadow(0 1vmin 0 rgba(0,0,0,.15)); }
+#piece.drag { position: fixed; z-index: 5; cursor: grabbing; transform: scale(1.08); pointer-events: none; }
+#hand { position: fixed; z-index: 6; width: var(--hand); height: var(--hand); pointer-events: none; opacity: 0;
+  transition: opacity .25s; }
+#hand.show { opacity: 1; }
+#cta-mini { position: fixed; left: 2vmin; top: 2vmin; z-index: 4; border: 0; border-radius: 4vmin; cursor: pointer;
+  background: #2ecc71; color: #fff; font: inherit; font-size: calc(var(--text) * .8); padding: 1vmin 2.2vmin;
+  box-shadow: 0 0.6vmin 0 #1e9e55; }
+#end { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2vmin; background: rgba(40,30,60,.45); }
+#end.show { display: flex; animation: fade .35s ease-out; }
+#card { background: #fff8e8; border-radius: 5vmin; padding: 3vmin 5vmin; display: flex; flex-direction: column;
+  align-items: center; gap: 1.6vmin; box-shadow: 0 1.2vmin 0 rgba(0,0,0,.15); max-width: 92vw; text-align: center; }
+#logo { width: min(64vw, 52vh); }
+#end-fox { width: var(--fox); height: var(--fox); }
+#end h1 { margin: 0; font-size: calc(var(--text) * 1.6); color: #ff9f43; -webkit-text-stroke: .35vmin #7a4a1a; }
+#end p { margin: 0; font-size: var(--text); white-space: pre-line; line-height: 1.3; }
+#cta { border: 0; border-radius: 5vmin; background: #2ecc71; color: #fff; font: inherit; cursor: pointer;
+  font-size: calc(var(--text) * 1.35); padding: 2vmin 6vmin; box-shadow: 0 1vmin 0 #1e9e55; animation: glow 1.6s ease-in-out infinite; }
+#replay { background: none; border: 0; font: inherit; font-size: calc(var(--text) * .8); color: #7a6a5a; text-decoration: underline; cursor: pointer; }
+.confetti { position: fixed; top: -4vmin; width: 1.6vmin; height: 1vmin; z-index: 11; pointer-events: none; border-radius: .3vmin; }
+@keyframes pop { 0% { transform: scale(.3); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-1.5vmin); } 40%,80% { transform: translateX(1.5vmin); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes glow { 0%,100% { box-shadow: 0 1vmin 0 #1e9e55, 0 0 0 0 rgba(46,204,113,.55); } 50% { box-shadow: 0 1vmin 0 #1e9e55, 0 0 0 2.4vmin rgba(46,204,113,0); } }
+/* Dikey ekran (telefon reklamlarının çoğu) */
+@media (orientation: portrait) { :root { --card: min(27vw, 17vh); --gap: 3vw; --fox: min(24vw, 15vh); --text: min(5vw, 3.2vh); --star: min(6vw, 4vh); --hand: min(16vw, 10vh); } }
+/* Yatay ekran */
+@media (orientation: landscape) { :root { --card: min(17vw, 27vh); --gap: 3vh; --fox: min(14vw, 22vh); --text: min(3vw, 5vh); --star: min(4vw, 6vh); --hand: min(10vw, 16vh); } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="top">
+    <img id="fox" src="{{IMG_fox_hello}}" alt="">
+    <div id="bubble"></div>
+  </div>
+  <div id="slots"></div>
+  <div id="tray"><img id="piece" alt="" draggable="false"></div>
+</div>
+<div id="stars"><span></span><span></span><span></span></div>
+<button id="cta-mini"></button>
+<svg id="hand" viewBox="0 0 64 64" aria-hidden="true">
+  <path d="M24 30V10a5 5 0 0 1 10 0v16l3-1a5 5 0 0 1 6 3l1 1a5 5 0 0 1 6 3l1 1a5 5 0 0 1 6 4v9c0 10-7 16-16 16h-6c-6 0-10-3-13-8l-9-15a5 5 0 0 1 8-5z"
+    fill="#fff" stroke="#3b2a20" stroke-width="3" stroke-linejoin="round"/>
+</svg>
+<div id="end">
+  <div id="card">
+    <img id="logo" src="{{IMG_logo}}" alt="Minik Kaşif">
+    <img id="end-fox" src="{{IMG_fox_happy}}" alt="">
+    <h1 id="end-title"></h1>
+    <p id="end-sub"></p>
+    <button id="cta"></button>
+    <button id="replay"></button>
+  </div>
+</div>
+<script>
+(function () {
+  var IMG = {{IMAGES_JSON}};
+  var TEXT = {
+    tr: { bubble: "Gölgesine sürükle!", mini: "İndir", title: "Harika!", sub: ["Fıstık'la 20 eğitici oyun", "3-6 yaş · Reklamsız"].join("\n"), cta: "Ücretsiz İndir", replay: "Tekrar oyna" },
+    en: { bubble: "Drag it to its shadow!", mini: "Get", title: "Great job!", sub: ["20 learning games with Fıstık", "Ages 3-6 · No ads"].join("\n"), cta: "Download Free", replay: "Play again" }
+  };
+  var lang = (navigator.language || "tr").slice(0, 2) === "tr" ? "tr" : "en";
+  var T = TEXT[lang];
+  // Her turda sürüklenen hayvan ve gösterilen üç gölge (ilk gölge doğru olandır).
+  var ROUNDS = [["lion", "elephant", "bird"], ["bird", "cat", "frog"], ["elephant", "rabbit", "dog"]];
+  var $ = function (id) { return document.getElementById(id); };
+  var slots = $("slots"), piece = $("piece"), hand = $("hand");
+  var round = 0, busy = false, idle = null, ended = false, handAnim = null;
+
+  $("bubble").textContent = T.bubble;
+  $("cta-mini").textContent = T.mini;
+  $("end-title").textContent = T.title;
+  $("end-sub").textContent = T.sub;
+  $("cta").textContent = T.cta;
+  $("replay").textContent = T.replay;
+
+  // ---- Ses: dosya yok, küçük tonlar ilk dokunuştan sonra üretilir ----
+  var audio = null;
+  function tone(freqs, length) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      freqs.forEach(function (f, i) {
+        var o = audio.createOscillator(), g = audio.createGain();
+        var t = audio.currentTime + i * length;
+        o.type = "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + length);
+        o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + length + 0.02);
+      });
+    } catch (e) {}
+  }
+
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function setup() {
+    var names = ROUNDS[round];
+    piece.src = IMG[names[0]];
+    piece.style.visibility = "visible";
+    slots.innerHTML = "";
+    shuffle(names.slice()).forEach(function (name) {
+      var s = document.createElement("div");
+      s.className = "slot"; s.dataset.name = name;
+      var img = document.createElement("img"); img.src = IMG[name]; img.alt = "";
+      s.appendChild(img);
+      s.addEventListener("pointerup", function () { if (!dragging) tryDrop(s); });
+      slots.appendChild(s);
+    });
+    busy = false;
+    hint(900);
+  }
+
+  // ---- El işareti: hayvandan doğru gölgeye gidip gelir ----
+  function hint(delay) {
+    clearTimeout(idle);
+    idle = setTimeout(function () {
+      if (ended || busy) return;
+      var target = slots.querySelector('[data-name="' + ROUNDS[round][0] + '"]');
+      if (!target) return;
+      var a = piece.getBoundingClientRect(), b = target.getBoundingClientRect();
+      var w = hand.getBoundingClientRect().width || 60;
+      var from = [a.left + a.width * 0.55, a.top + a.height * 0.45], to = [b.left + b.width * 0.55, b.top + b.height * 0.45];
+      hand.classList.add("show");
+      if (handAnim) handAnim.cancel();
+      handAnim = hand.animate([
+        { transform: "translate(" + from[0] + "px," + from[1] + "px) scale(1)", offset: 0 },
+        { transform: "translate(" + from[0] + "px," + from[1] + "px) scale(.85)", offset: 0.15 },
+        { transform: "translate(" + to[0] + "px," + to[1] + "px) scale(.85)", offset: 0.7 },
+        { transform: "translate(" + to[0] + "px," + to[1] + "px) scale(1)", offset: 0.85 },
+        { transform: "translate(" + to[0] + "px," + to[1] + "px) scale(1)", offset: 1 }
+      ], { duration: 1800, iterations: Infinity, easing: "ease-in-out" });
+    }, delay);
+  }
+  function hideHint() { clearTimeout(idle); hand.classList.remove("show"); if (handAnim) { handAnim.cancel(); handAnim = null; } }
+
+  // ---- Sürükleme ----
+  var dragging = false, offX = 0, offY = 0, over = null;
+  piece.addEventListener("pointerdown", function (e) {
+    if (busy || ended) return;
+    hideHint(); tone([660], 0.08);
+    var r = piece.getBoundingClientRect();
+    offX = e.clientX - r.left; offY = e.clientY - r.top;
+    piece.style.width = r.width + "px"; piece.style.height = r.height + "px";
+    piece.classList.add("drag"); dragging = true; move(e);
+  });
+  window.addEventListener("pointermove", function (e) { if (dragging) move(e); });
+  window.addEventListener("pointerup", function (e) {
+    if (!dragging) return;
+    dragging = false;
+    var target = slotAt(e.clientX, e.clientY);
+    clearOver();
+    piece.classList.remove("drag"); piece.style.left = piece.style.top = piece.style.width = piece.style.height = "";
+    if (target) tryDrop(target); else hint(3500);
+  });
+  function move(e) {
+    piece.style.left = (e.clientX - offX) + "px"; piece.style.top = (e.clientY - offY) + "px";
+    var s = slotAt(e.clientX, e.clientY);
+    if (s !== over) { clearOver(); over = s; if (s) s.classList.add("hover"); }
+  }
+  function clearOver() { if (over) over.classList.remove("hover"); over = null; }
+  function slotAt(x, y) {
+    var found = null;
+    Array.prototype.forEach.call(slots.children, function (s) {
+      var r = s.getBoundingClientRect(), pad = r.width * 0.25;
+      if (x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad) found = s;
+    });
+    return found;
+  }
+
+  function tryDrop(slot) {
+    if (busy || ended) return;
+    hideHint();
+    if (slot.dataset.name !== ROUNDS[round][0]) {
+      slot.classList.remove("wrong"); void slot.offsetWidth; slot.classList.add("wrong");
+      tone([300, 240], 0.12);
+      hint(2500);
+      return;
+    }
+    busy = true;
+    slot.classList.add("done");
+    piece.style.visibility = "hidden";
+    $("fox").src = IMG.fox_happy;
+    tone([523, 659, 784], 0.11);
+    document.querySelectorAll("#stars span")[round].classList.add("on");
+    setTimeout(function () {
+      $("fox").src = IMG.fox_hello;
+      round++;
+      if (round >= ROUNDS.length) finish(); else setup();
+    }, 900);
+  }
+
+  // ---- Bitiş kartı ----
+  function finish() {
+    if (ended) return;
+    ended = true; hideHint();
+    $("end").classList.add("show");
+    tone([523, 659, 784, 1047], 0.13);
+    var colors = ["#ff6b6b", "#ffd93d", "#6bcB77", "#4d96ff", "#ff8fb1", "#a66cff"];
+    for (var i = 0; i < 60; i++) {
+      var c = document.createElement("div");
+      c.className = "confetti";
+      c.style.left = Math.random() * 100 + "vw";
+      c.style.background = colors[i % colors.length];
+      document.body.appendChild(c);
+      c.animate([{ transform: "translateY(0) rotate(0)" }, { transform: "translateY(110vh) rotate(" + (360 + Math.random() * 720) + "deg)" }],
+        { duration: 1800 + Math.random() * 1400, delay: Math.random() * 500, easing: "ease-in", fill: "forwards" });
+    }
+  }
+
+  function cta() { tone([784], 0.1); {{CTA}} }
+  $("cta").addEventListener("click", cta);
+  $("cta-mini").addEventListener("click", cta);
+  $("replay").addEventListener("click", function () {
+    ended = false; round = 0;
+    $("end").classList.remove("show");
+    document.querySelectorAll(".confetti").forEach(function (c) { c.remove(); });
+    document.querySelectorAll("#stars span").forEach(function (s) { s.classList.remove("on"); });
+    setup();
+  });
+  window.addEventListener("resize", function () { if (!ended && !busy) { hideHint(); hint(400); } });
+  // 30 saniye içinde bitirilmezse bitiş kartı yine gösterilir (reklam ağlarının isteği).
+  setTimeout(finish, 30000);
+  setup();
+})();
+</script>
+</body>
+</html>

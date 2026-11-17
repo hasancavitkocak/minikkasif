@@ -181,6 +181,20 @@ class _ProfileDialogState extends State<_ProfileDialog> {
                         ),
                       ],
                     ),
+                    // İlk kurulumda aynı bilgi üstteki açıklamada yazar.
+                    if (!firstRun) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        L.t('age_hint'),
+                        key: const ValueKey('age_hint'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.2,
+                          color: AppColors.ink.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,

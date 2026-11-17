@@ -6,6 +6,7 @@ import '../data/objects.dart';
 import '../data/outfits.dart';
 import '../services/audio.dart';
 import '../theme.dart';
+import 'motion.dart';
 
 /// Bir asset görselini gösterir; dosya henüz eklenmemişse [fallback] çizilir.
 /// Böylece görseller hazır olmadan da oyun oynanabilir.
@@ -49,6 +50,21 @@ class ObjectImage extends StatelessWidget {
     return GameImage(
       'assets/images/${object.folder}/${object.id}.png',
       fallback: Emoji(object.emoji),
+    );
+  }
+}
+
+/// Soru kartlarındaki "dinle" görseli (hoparlör).
+class SpeakerArt extends StatelessWidget {
+  const SpeakerArt({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const GameImage(
+      'assets/images/ui/btn_sound_on.png',
+      fallback: FittedBox(
+        child: Icon(Icons.volume_up_rounded, color: AppColors.blue),
+      ),
     );
   }
 }
@@ -286,6 +302,8 @@ class RoundButton extends StatelessWidget {
     required this.onTap,
     this.asset,
     this.size = 60,
+    this.enabled = true,
+    this.mirror = false,
   });
 
   final IconData icon;
@@ -293,6 +311,12 @@ class RoundButton extends StatelessWidget {
   final VoidCallback onTap;
   final String? asset;
   final double size;
+
+  /// Kapalıyken gri ve soluk görünür, dokunulamaz.
+  final bool enabled;
+
+  /// Görsel yatayda çevrilir (ör. ileri okundan geri oku).
+  final bool mirror;
 
   @override
   Widget build(BuildContext context) {
@@ -311,15 +335,27 @@ class RoundButton extends StatelessWidget {
       ),
       child: Icon(icon, color: Colors.white, size: size * 0.55),
     );
+    Widget art = asset == null
+        ? drawn
+        : GameImage('assets/images/ui/$asset.png', fallback: drawn);
+    if (mirror) art = Transform.flip(flipX: true, child: art);
+    if (!enabled) {
+      art = Opacity(
+        opacity: 0.45,
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix([
+            0.33, 0.33, 0.33, 0, 0, //
+            0.33, 0.33, 0.33, 0, 0, //
+            0.33, 0.33, 0.33, 0, 0, //
+            0, 0, 0, 1, 0, //
+          ]),
+          child: art,
+        ),
+      );
+    }
     return Pressable(
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: asset == null
-            ? drawn
-            : GameImage('assets/images/ui/$asset.png', fallback: drawn),
-      ),
+      onTap: enabled ? onTap : null,
+      child: SizedBox(width: size, height: size, child: art),
     );
   }
 }
@@ -360,10 +396,17 @@ class _ChoiceTileState extends State<ChoiceTile> with TickerProviderStateMixin {
     duration: const Duration(milliseconds: 420),
   );
 
+  /// Doğru seçimde karttan dışa saçılan yıldızlar.
+  late final AnimationController _sparkle = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  );
+
   @override
   void dispose() {
     _shake.dispose();
     _jump.dispose();
+    _sparkle.dispose();
     super.dispose();
   }
 
@@ -387,19 +430,34 @@ class _ChoiceTileState extends State<ChoiceTile> with TickerProviderStateMixin {
         onTap: () {
           if (widget.onTap()) {
             _jump.forward(from: 0);
+            _sparkle.forward(from: 0);
           } else {
             _shake.forward(from: 0);
           }
         },
-        child: Container(
-          width: size,
-          height: size,
-          padding: EdgeInsets.all((size ?? 80) * widget.padding),
-          decoration: panelDecoration(
-            color: widget.color,
-            radius: (size ?? 80) * 0.22,
-          ),
-          child: widget.child,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: size,
+              height: size,
+              padding: EdgeInsets.all((size ?? 80) * widget.padding),
+              decoration: panelDecoration(
+                color: widget.color,
+                radius: (size ?? 80) * 0.22,
+              ),
+              child: widget.child,
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _sparkle,
+                  builder: (context, _) =>
+                      CustomPaint(painter: SparklePainter(_sparkle.value)),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minik_kasif/app_state.dart';
+import 'package:minik_kasif/data/animals.dart';
 import 'package:minik_kasif/data/objects.dart';
 import 'package:minik_kasif/data/jobs.dart';
 import 'package:minik_kasif/data/outfits.dart';
+import 'package:minik_kasif/data/produce.dart';
 import 'package:minik_kasif/data/seasons.dart';
 import 'package:minik_kasif/data/stories.dart';
 import 'package:minik_kasif/games/letters_game.dart';
@@ -97,6 +99,24 @@ final pending = <String>{
   'g_duel',
   'g_music',
   'g_wardrobe',
+  // Hayvanlar ve Meyve-Sebze oyunları.
+  'who_plays',
+  'g_animals',
+  'g_fruits',
+  'i_animals_learn',
+  'i_animals_find',
+  'i_animals_sound',
+  for (final a in animals) ...[a.nameKey, a.textKey],
+  'i_fruits_learn',
+  'i_fruits_find',
+  for (final c in ProduceColor.values) c.instructionKey,
+  'i_fruits_veg',
+  'i_fruits_fruit',
+  'i_fruits_tree',
+  for (final p in produce) p.nameKey,
+  'food_fruit',
+  'food_veg',
+  for (final g in Grow.values) 'grow_${g.name}',
 };
 
 bool recorded(String key) => [
@@ -265,7 +285,15 @@ void main() {
         ];
         expect(lines.length, 1, reason: '${game.id} seen=$seen: $spoken');
         expect(
-          rest.every((s) => s.startsWith('job_') || s.startsWith('season_')),
+          rest.every(
+            (s) => [
+              'job_',
+              'season_',
+              'animal_',
+              'food_',
+              'grow_',
+            ].any(s.startsWith),
+          ),
           isTrue,
           reason: '${game.id}: $spoken',
         );
@@ -361,13 +389,21 @@ void main() {
       await wait(tester, 300);
       expect(saved(), contains('"strokes":[[0,'));
       // Silgi seçilince çizilen çizgi "silgi" olarak kaydedilir (-1).
-      await tester.tap(find.byIcon(Icons.auto_fix_normal_rounded));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) => w is RoundButton && w.icon == Icons.auto_fix_normal_rounded,
+        ),
+      );
       await wait(tester, 300);
       await tester.dragFrom(page, const Offset(60, 20));
       await wait(tester, 300);
       expect(saved(), contains('[-1,'));
       // Tümünü sil tek dokunuşla, onaysız çalışır.
-      await tester.tap(find.byIcon(Icons.delete_rounded));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) => w is RoundButton && w.icon == Icons.delete_rounded,
+        ),
+      );
       await wait(tester, 300);
       expect(saved(), contains('"strokes":[]'));
       expect(spoken, ['g_scene', 'scene_hint']);

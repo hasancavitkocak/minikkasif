@@ -27,6 +27,7 @@ const skills = <Skill>[
     'odd',
     'diff',
     'shadow',
+    'animals',
   ]),
   Skill('sk_logic', Icons.extension_rounded, AppColors.purple, [
     'pattern',
@@ -35,6 +36,7 @@ const skills = <Skill>[
     'maze',
     'jobs',
     'seasons',
+    'fruits',
   ]),
   Skill('sk_numbers', Icons.pin_rounded, AppColors.green, [
     'count',
@@ -49,9 +51,14 @@ const skills = <Skill>[
   ]),
 ];
 
-/// Gelişim raporu: seçili profilin beceri alanlarına göre ilerlemesi.
-class ReportScreen extends StatelessWidget {
-  const ReportScreen({super.key});
+/// Gelişim raporu: bir çocuğun beceri alanlarına göre ilerlemesi. Birden fazla
+/// profil varsa üstteki resimlerden çocuk seçilir; bu, oynayan çocuğu
+/// değiştirmez.
+class ReportScreen extends StatefulWidget {
+  const ReportScreen({super.key, this.profileId});
+
+  /// Açılışta gösterilecek çocuk; verilmezse oynayan çocuk.
+  final int? profileId;
 
   /// Becerinin oyunlarında kazanılan yıldızların, kazanılabilecek toplam
   /// yıldıza oranı (0..1).
@@ -67,7 +74,24 @@ class ReportScreen extends StatelessWidget {
   }
 
   @override
+  State<ReportScreen> createState() => _ReportScreenState();
+}
+
+class _ReportScreenState extends State<ReportScreen> {
+  late int _id = widget.profileId ?? AppState.I.profile.id;
+
+  @override
   Widget build(BuildContext context) {
+    final state = AppState.I;
+    final viewed = state.profiles.firstWhere(
+      (p) => p.id == _id,
+      orElse: () => state.profile,
+    );
+    // Bütün sayılar bu çocuğun verisinden okunur.
+    return state.peekProfile(viewed.id, () => _build(context, viewed));
+  }
+
+  Widget _build(BuildContext context, Profile viewed) {
     final state = AppState.I;
     return Scaffold(
       body: Stack(
@@ -88,13 +112,32 @@ class ReportScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Avatar(state.profile, size: 50),
-                                const SizedBox(width: 10),
+                                // Birden fazla çocuk varsa resimlerinden
+                                // seçilir; seçili olan halkalıdır.
+                                for (final p
+                                    in state.profiles.length > 1
+                                        ? state.profiles
+                                        : [viewed])
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Pressable(
+                                      key: ValueKey('report_${p.id}'),
+                                      onTap: () => setState(() => _id = p.id),
+                                      child: Avatar(
+                                        p,
+                                        size: 50,
+                                        selected:
+                                            state.profiles.length > 1 &&
+                                            p.id == viewed.id,
+                                      ),
+                                    ),
+                                  ),
+                                const SizedBox(width: 4),
                                 Flexible(
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: StrokeText(
-                                      '${state.profileName(state.profile)} · ${L.t('report')}',
+                                      '${state.profileName(viewed)} · ${L.t('report')}',
                                       size: 28,
                                     ),
                                   ),
@@ -196,7 +239,7 @@ class ReportScreen extends StatelessWidget {
   }
 
   Widget _skillRow(Skill skill) {
-    final value = progress(skill);
+    final value = ReportScreen.progress(skill);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(

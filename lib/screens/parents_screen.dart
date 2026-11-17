@@ -405,11 +405,41 @@ class _ParentsScreenState extends State<ParentsScreen> {
   }
 
   /// Gelişim raporu: özet sayılar ve ayrıntılı rapora geçiş.
+  /// Rapor sekmesinde gösterilen çocuk (oynayan çocuğu değiştirmez).
+  late int _reportId = AppState.I.profile.id;
+
   Widget _report(BuildContext context) {
+    final state = AppState.I;
+    final viewed = state.profiles.firstWhere(
+      (p) => p.id == _reportId,
+      orElse: () => state.profile,
+    );
+    return state.peekProfile(viewed.id, () => _reportOf(context, viewed));
+  }
+
+  Widget _reportOf(BuildContext context, Profile viewed) {
     final state = AppState.I;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        if (state.profiles.length > 1) ...[
+          // Hangi çocuğun raporu: resmine dokunarak seçilir.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final p in state.profiles)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Pressable(
+                    key: ValueKey('preport_${p.id}'),
+                    onTap: () => setState(() => _reportId = p.id),
+                    child: Avatar(p, size: 40, selected: p.id == viewed.id),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
         Row(
           children: [
             _stat(
@@ -442,11 +472,13 @@ class _ParentsScreenState extends State<ParentsScreen> {
         _row(
           L.t('report'),
           icon: Icons.insights_rounded,
-          subtitle: state.profileName(state.profile),
+          subtitle: state.profileName(viewed),
           trailing: _chevron,
-          onTap: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => const ReportScreen())),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => ReportScreen(profileId: viewed.id),
+            ),
+          ),
         ),
       ],
     );

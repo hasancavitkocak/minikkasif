@@ -1,134 +1,96 @@
 {
- "grup01": [
-  "g_sort",
-  "g_maze",
-  "g_color",
-  "g_groups",
-  "g_simon",
-  "g_diff",
-  "g_dots",
-  "g_jobs"
+ "kayit01": [
+  "i_fruits_purple",
+  "i_fruits_tree",
+  "animal_cow",
+  "animal_duck_d",
+  "animal_chick_d",
+  "animal_elephant",
+  "food_banana",
+  "food_potato",
+  "food_pumpkin",
+  "food_veg",
+  "story_share_1",
+  "story_sleep_4"
  ],
- "grup02": [
-  "g_seasons",
-  "g_clock",
-  "g_letters",
-  "g_scene",
-  "g_duel",
-  "g_music",
-  "g_wardrobe",
-  "g_story"
+ "kayit02": [
+  "g_fruits",
+  "i_animals_find",
+  "animal_cow_d",
+  "animal_rooster",
+  "animal_elephant_d",
+  "food_carrot",
+  "food_cherry",
+  "grow_tree",
+  "story_rain_1",
+  "story_share_2",
+  "story_share_5",
+  "story_sleep_5"
  ],
- "grup03": [
-  "i_jobs_learn",
-  "i_jobs_find",
-  "i_jobs",
-  "i_jobs_rev"
+ "kayit03": [
+  "i_animals_learn",
+  "i_animals_sound",
+  "i_fruits_find",
+  "animal_sheep",
+  "animal_chick",
+  "food_tomato",
+  "food_eggplant",
+  "grow_field",
+  "story_rain_2",
+  "story_share_3",
+  "story_sleep_2",
+  "story_sleep_6"
  ],
- "grup04": [
-  "i_seasons_rev",
-  "i_clock_place",
-  "i_clock_read",
-  "i_clock_set",
-  "i_letters_same",
-  "i_letters_hear",
-  "i_letters_case"
+ "kayit04": [
+  "who_plays",
+  "i_fruits_red",
+  "i_fruits_fruit",
+  "animal_cat",
+  "animal_sheep_d",
+  "animal_frog",
+  "food_grapes",
+  "food_lemon",
+  "grow_under",
+  "story_rain_3",
+  "story_share_4"
  ],
- "grup05": [
-  "job_firefighter",
-  "job_firefighter_d",
-  "job_doctor",
-  "job_doctor_d",
-  "job_cook",
-  "job_cook_d",
-  "job_teacher",
-  "job_teacher_d",
-  "job_builder",
-  "job_builder_d"
+ "kayit05": [
+  "g_animals",
+  "i_fruits_yellow",
+  "animal_cat_d",
+  "animal_horse",
+  "animal_frog_d",
+  "food_orange",
+  "food_broccoli",
+  "food_fruit",
+  "grow_vine",
+  "story_rain_4",
+  "story_share_6"
  ],
- "grup06": [
-  "job_painter",
-  "job_painter_d",
-  "job_postman",
-  "job_postman_d",
-  "job_pilot",
-  "job_pilot_d",
-  "job_farmer",
-  "job_farmer_d",
-  "job_astronaut",
-  "job_astronaut_d"
+ "kayit06": [
+  "i_fruits_learn",
+  "i_fruits_orange",
+  "animal_dog",
+  "animal_horse_d",
+  "animal_lion",
+  "food_apple",
+  "food_cucumber",
+  "food_watermelon",
+  "grow_warm",
+  "story_rain_5",
+  "story_sleep_1"
  ],
- "grup07": [
-  "season_spring",
-  "season_spring_d",
-  "season_summer",
-  "season_summer_d",
-  "season_autumn",
-  "season_autumn_d",
-  "season_winter",
-  "season_winter_d"
- ],
- "grup08": [
-  "let_a",
-  "let_b",
-  "let_c",
-  "let_cc",
-  "let_d",
-  "let_e",
-  "let_f",
-  "let_g",
-  "let_gg",
-  "let_h"
- ],
- "grup09": [
-  "let_ii",
-  "let_i",
-  "let_j",
-  "let_k",
-  "let_l",
-  "let_m",
-  "let_n",
-  "let_o",
-  "let_oo",
-  "let_p"
- ],
- "grup10": [
-  "let_r",
-  "let_s",
-  "let_ss",
-  "let_t",
-  "let_u",
-  "let_uu",
-  "let_v",
-  "let_y",
-  "let_z"
- ],
- "grup11": [
-  "story_ball_1",
-  "story_ball_2",
-  "story_ball_3",
-  "story_ball_4",
-  "story_ball_5",
-  "story_ball_6"
- ],
- "grup12": [
-  "story_seed_1",
-  "story_seed_2",
-  "story_seed_3",
-  "story_seed_4",
-  "story_seed_5",
-  "story_seed_6"
- ],
- "grup13": [
-  "daily_bubble",
-  "story_hint",
-  "story_end",
-  "num_11",
-  "num_12"
- ],
- "grup14": [
-  "i_seasons_learn",
-  "i_seasons_find",
-  "i_seasons"
+ "kayit07": [
+  "i_fruits_green",
+  "i_fruits_veg",
+  "animal_dog_d",
+  "animal_duck",
+  "animal_rooster_d",
+  "animal_lion_d",
+  "food_pear",
+  "food_strawberry",
+  "food_corn",
+  "story_rain_6",
+  "story_sleep_3"
  ]
 }

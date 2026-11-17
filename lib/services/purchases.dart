@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
 import '../app_state.dart';
@@ -59,6 +60,59 @@ class Purchases extends ChangeNotifier {
       return true;
     } catch (_) {
       return false;
+    }
+  }
+
+  /// Ürün kimliği -> ücretsiz deneme süresi (gün). Deneme mağazada
+  /// tanımlıdır; yalnızca bu kullanıcı denemeye hak sahibiyse dolar.
+  final Map<String, int> _trialDays = {};
+
+  /// Bu ürün için kullanıcıya sunulan ücretsiz deneme süresi; yoksa 0.
+  int trialDays(String productId) => _trialDays[productId] ?? 0;
+
+  /// Testlerde deneme süresini elle verir.
+  @visibleForTesting
+  void debugSetTrial(String productId, int days) {
+    days > 0 ? _trialDays[productId] = days : _trialDays.remove(productId);
+    notifyListeners();
+  }
+
+  /// Deneme süresinin gün karşılığı: [count] kez [value] birimlik dönem.
+  static int trialLength(SK2SubscriptionPeriodUnit unit, int value, int count) {
+    final days = switch (unit) {
+      SK2SubscriptionPeriodUnit.day => 1,
+      SK2SubscriptionPeriodUnit.week => 7,
+      SK2SubscriptionPeriodUnit.month => 30,
+      SK2SubscriptionPeriodUnit.year => 365,
+    };
+    return days * value * count;
+  }
+
+  /// Mağazadaki ücretsiz deneme tekliflerini okur. Kullanıcı denemeyi daha
+  /// önce kullandıysa teklif gösterilmez (mağaza da uygulamaz).
+  Future<void> _loadTrials() async {
+    _trialDays.clear();
+    for (final product in products) {
+      if (product is! AppStoreProduct2Details) continue;
+      try {
+        final offers =
+            product.sk2Product.subscription?.promotionalOffers ?? const [];
+        for (final offer in offers) {
+          if (offer.type != SK2SubscriptionOfferType.introductory ||
+              offer.paymentMode != SK2SubscriptionOfferPaymentMode.freeTrial) {
+            continue;
+          }
+          if (await SK2Product.isIntroductoryOfferEligible(product.id)) {
+            _trialDays[product.id] = trialLength(
+              offer.period.unit,
+              offer.period.value,
+              offer.periodCount,
+            );
+          }
+        }
+      } catch (_) {
+        // Deneme bilgisi okunamadı: teklif gösterilmez.
+      }
     }
   }
 
@@ -133,6 +187,7 @@ class Purchases extends ChangeNotifier {
       final response = await InAppPurchase.instance.queryProductDetails(_ids);
       products = response.productDetails;
       error = response.error?.message;
+      await _loadTrials();
     } catch (e) {
       error = e.toString();
     }

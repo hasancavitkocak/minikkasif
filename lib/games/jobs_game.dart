@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../data/jobs.dart';
 import '../l10n.dart';
 import '../services/audio.dart';
-import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/game_shell.dart';
 import 'game_def.dart';
@@ -146,12 +145,7 @@ class _JobsRoundState extends State<_JobsRound> {
     return QuizRound(
       prompt: find
           // Hoparlöre dokununca meslek adı yeniden söylenir.
-          ? Pressable(
-              onTap: _say,
-              child: const FittedBox(
-                child: Icon(Icons.volume_up_rounded, color: AppColors.blue),
-              ),
-            )
+          ? Pressable(onTap: _say, child: const SpeakerArt())
           : ObjectImage(reversed ? _answer.person : _answer.tool),
       options: [
         for (final j in _options) ObjectImage(reversed ? j.tool : j.person),

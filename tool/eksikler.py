@@ -44,14 +44,16 @@ STORY_KEYS = list(story_pages())
 # Seslendirilecek cümleler, kayıt sırasıyla.
 VOICE_KEYS = [
     ("Tanışma konuşması (ilk açılışta, sırayla)", ["intro_1", "intro_2", "intro_3", "intro_4"]),
-    ("Ana ekran ve bölüm haritası", ["pick_game", "pick_level"]),
-    ("Oyun adları (oyuna girince okunur)", ["g_shapes", "g_memory", "g_shadow", "g_count", "g_pattern", "g_odd", "g_puzzle", "g_sort", "g_maze", "g_color", "g_groups", "g_simon", "g_diff", "g_dots", "g_jobs", "g_seasons", "g_clock", "g_letters", "g_scene", "g_duel", "g_music", "g_wardrobe", "g_story"]),
+    ("Ana ekran ve bölüm haritası", ["pick_game", "pick_level", "who_plays"]),
+    ("Oyun adları (oyuna girince okunur)", ["g_shapes", "g_memory", "g_shadow", "g_count", "g_pattern", "g_odd", "g_puzzle", "g_sort", "g_maze", "g_color", "g_groups", "g_simon", "g_diff", "g_dots", "g_jobs", "g_seasons", "g_clock", "g_letters", "g_scene", "g_duel", "g_music", "g_wardrobe", "g_story", "g_animals", "g_fruits"]),
     ("Bölüm sonu (övgülerden rastgele biri)", ["praise_1", "praise_2", "praise_3", "praise_4"]),
     ("Oyun yönergeleri", None),  # i_ ile başlayan tüm anahtarlar
     ("Günün macerası", ["daily_bubble", "daily_done"]),
     ("Etkinlikler ve belge", ["scene_hint", "music_follow", "wardrobe_hint", "cert_title"]),
     ("Meslekler: her mesleğin adı ve tanıtım cümlesi (ayrı dosyalar)", ['job_firefighter', 'job_firefighter_d', 'job_doctor', 'job_doctor_d', 'job_cook', 'job_cook_d', 'job_teacher', 'job_teacher_d', 'job_builder', 'job_builder_d', 'job_painter', 'job_painter_d', 'job_postman', 'job_postman_d', 'job_pilot', 'job_pilot_d', 'job_farmer', 'job_farmer_d', 'job_astronaut', 'job_astronaut_d']),
     ("Mevsimler: her mevsimin adı ve tanıtım cümlesi (ayrı dosyalar)", ['season_spring', 'season_spring_d', 'season_summer', 'season_summer_d', 'season_autumn', 'season_autumn_d', 'season_winter', 'season_winter_d']),
+    ("Hayvanlar: her hayvanın adı ve tanıtım cümlesi (ayrı dosyalar)", ['animal_cat', 'animal_cat_d', 'animal_dog', 'animal_dog_d', 'animal_cow', 'animal_cow_d', 'animal_sheep', 'animal_sheep_d', 'animal_horse', 'animal_horse_d', 'animal_duck', 'animal_duck_d', 'animal_rooster', 'animal_rooster_d', 'animal_chick', 'animal_chick_d', 'animal_frog', 'animal_frog_d', 'animal_lion', 'animal_lion_d', 'animal_elephant', 'animal_elephant_d']),
+    ("Meyve ve sebzeler: adları ve tanıtım cümleleri (ayrı dosyalar)", ['food_apple', 'food_pear', 'food_banana', 'food_carrot', 'food_tomato', 'food_grapes', 'food_orange', 'food_cucumber', 'food_strawberry', 'food_potato', 'food_cherry', 'food_eggplant', 'food_lemon', 'food_broccoli', 'food_watermelon', 'food_corn', 'food_pumpkin', 'food_fruit', 'food_veg', 'grow_tree', 'grow_field', 'grow_under', 'grow_vine', 'grow_warm']),
     ("Hikâyeler ekranı", ["story_hint", "story_end"]),
     ("Sayılar (sayma ve saat oyunlarında okunur)", [f"num_{n}" for n in range(1, 13)]),
     ("Harfler (harfin okunuşu: \"a\", \"be\", \"ce\"...)", LETTER_KEYS),

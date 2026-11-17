@@ -161,6 +161,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Widget _offer() {
     final purchases = Purchases.I;
     final selected = _yearly ? purchases.yearly : purchases.monthly;
+    // Seçili planda bu kullanıcıya sunulan ücretsiz deneme (gün); yoksa 0.
+    final trial = purchases.trialDays(
+      _yearly ? Purchases.yearlyId : Purchases.monthlyId,
+    );
     const demo = kDebugMode || _demoUnlock;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -186,7 +190,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        _benefit(Icons.extension_rounded, AppColors.purple, L.t('premium_b1')),
+        // Oyun ve bölüm sayısı listeden hesaplanır; oyun eklenince güncel kalır.
+        _benefit(
+          Icons.extension_rounded,
+          AppColors.purple,
+          L
+              .t('premium_b1')
+              .replaceAll('{games}', '${games.length}')
+              .replaceAll(
+                '{levels}',
+                '${games.fold<int>(0, (sum, g) => sum + g.levels)}',
+              ),
+        ),
         _benefit(
           Icons.verified_user_rounded,
           AppColors.teal,
@@ -218,7 +233,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         SizedBox(
           width: double.infinity,
           child: BigButton(
-            label: L.t('continue'),
+            label: L.t(trial > 0 ? 'trial_start' : 'continue'),
             icon: Icons.lock_open_rounded,
             // Tanıtım derlemesinde mağaza olmadığı için buton kilidi doğrudan açar.
             onTap: selected != null
@@ -276,6 +291,28 @@ class _PaywallScreenState extends State<PaywallScreen> {
         // Abonelik satılan ekranda koşullar ve gizlilik politikası görünür.
         const LegalLinks(fontSize: 14),
         const SizedBox(height: 4),
+        // Deneme varsa süresi ve bitince alınacak ücret açıkça yazılır.
+        if (trial > 0) ...[
+          Text(
+            L
+                .t('trial_note')
+                .replaceAll('{days}', '$trial')
+                .replaceAll('{price}', selected?.price ?? '—')
+                .replaceAll(
+                  '{period}',
+                  L.t(_yearly ? 'period_year' : 'period_month'),
+                ),
+            key: const ValueKey('trial_note'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12.5,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: 3),
+        ],
         Text(
           Purchases.legalText('sub_note'),
           textAlign: TextAlign.center,
@@ -320,6 +357,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }) {
     final selected = _yearly == yearly;
     final color = yearly ? AppColors.green : AppColors.blue;
+    final trial = Purchases.I.trialDays(
+      yearly ? Purchases.yearlyId : Purchases.monthlyId,
+    );
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -354,6 +394,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         product?.price ?? '—',
                         style: titleStyle.copyWith(fontSize: 24),
                       ),
+                      if (trial > 0)
+                        Text(
+                          L.t('trial_badge').replaceAll('{days}', '$trial'),
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.2,
+                            fontWeight: FontWeight.w800,
+                            color: Color.lerp(color, Colors.black, 0.25),
+                          ),
+                        ),
                     ],
                   ),
                 ),

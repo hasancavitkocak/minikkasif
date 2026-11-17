@@ -30,6 +30,7 @@ void showLegalText(BuildContext context, String title, String body) {
                   ),
                   RoundButton(
                     icon: Icons.close_rounded,
+                    asset: 'btn_close',
                     color: AppColors.red,
                     size: 42,
                     onTap: () => Navigator.of(context).pop(),

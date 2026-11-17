@@ -325,6 +325,7 @@ class _SceneScreenState extends State<SceneScreen> {
       Color color,
       VoidCallback onTap, {
       bool selected = false,
+      String? asset,
     }) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -341,6 +342,7 @@ class _SceneScreenState extends State<SceneScreen> {
             child: RoundButton(
               icon: icon,
               color: color,
+              asset: asset,
               size: 58,
               onTap: onTap,
             ),
@@ -360,6 +362,7 @@ class _SceneScreenState extends State<SceneScreen> {
             AppColors.pink,
             () => setState(() => _paint = -1),
             selected: _paint == -1,
+            asset: 'btn_eraser',
           ),
           tool(
             _thick ? Icons.circle : Icons.fiber_manual_record_outlined,
@@ -375,7 +378,7 @@ class _SceneScreenState extends State<SceneScreen> {
             },
           ),
           // Tümünü sil: onay sorulmaz, küçük çocuk tek dokunuşla yapar.
-          tool(Icons.delete_rounded, AppColors.red, () {
+          tool(Icons.delete_rounded, AppColors.red, asset: 'btn_trash', () {
             Sfx.play('pop');
             setState(_strokes.clear);
             _save();

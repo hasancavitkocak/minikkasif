@@ -31,7 +31,10 @@ GROUPS_DOC = os.path.join(BASE, "docs", "ses-gruplari.md")
 # Cümleler arasındaki duraklama. Seslendirme aracı bu işareti okumaz, susar.
 # Eleven v3: tek işaret kısa kalıyor, iki işaret yaklaşık 0,7-1 sn susturuyor.
 BREAK = "[long pause] [long pause]"
-GROUP_SIZE = 10
+GROUP_SIZE = 16
+
+# Grup dosyalarının adı: kayit01.mp3, kayit02.mp3...
+PREFIX = "kayit"
 
 NUMBER_WORDS = ["bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz", "on", "on bir", "on iki"]
 LETTER_NAMES = {
@@ -57,24 +60,62 @@ def spoken_text(key, table):
     return text if text[-1] in ".!?" else text + "."
 
 
+def words(key, table):
+    return spoken_text(key, table).lower().strip(".!?¡¿ ").replace(",", "").split()
+
+
+def similar(a, b, table):
+    """İki kısa cümle birbirine benziyor mu? Aynı sözcükle başlayan ya da
+    biten kısa cümleler ("Kırmızı olanı bul!" - "Sarı olanı bul!", "Hangisi
+    meyve?" - "Hangisi sebze?") aynı kayıtta olunca ses birini atlayabiliyor.
+    Uzun cümleler (hikâye sayfaları) birbirinden yeterince farklıdır."""
+    wa, wb = words(a, table), words(b, table)
+    if not wa or not wb or len(wa) > 4 or len(wb) > 4:
+        return False
+    return wa[0] == wb[0] or wa[-1] == wb[-1]
+
+
 def make_groups():
     table = voice_table()
-    groups = []
-    for title, keys in voice_sections(table):
-        missing = [k for k in keys if not recorded(k)]
-        # Bölüm eşit büyüklükte gruplara ayrılır; en çok GROUP_SIZE cümle.
-        count = -(-len(missing) // GROUP_SIZE)
-        for g in range(count):
-            size = -(-len(missing) // count)
-            groups.append((title, missing[g * size:(g + 1) * size]))
-    # Birkaç cümlelik küçük gruplar tek grupta toplanır: daha az dosya.
-    small = [g for g in groups if len(g[1]) < 4]
-    if len(small) > 1:
-        groups = [g for g in groups if len(g[1]) >= 4]
-        merged = [k for _, keys in small for k in keys]
-        for i in range(0, len(merged), GROUP_SIZE):
-            groups.append(("Diğer kısa cümleler", merged[i:i + GROUP_SIZE]))
-    names = {f"grup{i + 1:02d}": keys for i, (_, keys) in enumerate(groups)}
+    missing = [
+        k for _, keys in voice_sections(table) for k in keys if not recorded(k)
+    ]
+    # Bütün eksik cümleler olabildiğince az kayda dağıtılır. Her cümle,
+    # kendisine benzeyen cümle bulunmayan en boş gruba konur; olmazsa grup
+    # sayısı bir artırılıp baştan dağıtılır. Böylece benzer cümleler asla aynı
+    # kayıtta olmaz ve gruplar birbirine yakın büyüklükte kalır.
+    # En çok benzeri olan cümleler önce yerleştirilir; sona kalan serbest
+    # cümleler boşlukları doldurur.
+    order = sorted(
+        missing,
+        key=lambda k: -sum(similar(k, o, table) for o in missing if o != k),
+    )
+    count = max(1, -(-len(missing) // GROUP_SIZE))
+    while True:
+        buckets = [[] for _ in range(count)]
+        ok = True
+        for key in order:
+            free = [
+                b
+                for b in buckets
+                if len(b) < GROUP_SIZE
+                and not any(similar(key, other, table) for other in b)
+            ]
+            if not free:
+                ok = False
+                break
+            min(free, key=len).append(key)
+        if ok:
+            break
+        count += 1
+    # Grubun içinde cümleler belge sırasıyla durur (hikâye sayfaları sırayla).
+    groups = [("", sorted(b, key=missing.index)) for b in buckets if b]
+    # Son kontrol: hiçbir grupta birbirine benzeyen iki cümle yoktur.
+    for _, keys in groups:
+        for i, a in enumerate(keys):
+            for b in keys[i + 1:]:
+                assert not similar(a, b, table), (a, b)
+    names = {f"{PREFIX}{i + 1:02d}": keys for i, (_, keys) in enumerate(groups)}
     with open(GROUPS_JSON, "w", encoding="utf-8", newline="\n") as f:
         json.dump(names, f, ensure_ascii=False, indent=1)
 
@@ -91,12 +132,8 @@ def make_groups():
         "1. Bir grubun kutusundaki metnin tamamını kopyalayıp seslendirme aracına yapıştırın.",
         f"2. Metindeki `{BREAK}` işaretlerine dokunmayın: araç orada susar,",
         "   cümleler o sessizliklerden ayrılır.",
-        "3. Çıkan tek ses dosyasını başlıktaki adla (örnek: `grup01.mp3`) Downloads klasörüne kaydedin.",
-        "4. Hepsi aynı ses ve aynı ayarlarla üretilsin.",
-        "",
-        "Metin ElevenLabs'in **Eleven v3** modeli içindir: duraklama o modelde",
-        f"`{BREAK}` işaretiyle yapılır. (Multilingual v2 kullanılırsa işaret",
-        '`<break time="2.5s" />` olmalıdır; haber verin, metni ona göre yazarım.)',
+        f"3. Çıkan tek ses dosyasını başlıktaki adla (örnek: `{PREFIX}01.mp3`) Downloads klasörüne kaydedin.",
+        "4. Hepsi aynı ses ve aynı ayarlarla üretilsin (ElevenLabs, model **Eleven v3**).",
         "",
         "Bir grupta cümle atlanır ya da fazladan duraklama olursa o grup aktarılmaz;",
         "hangi grup olduğu size bildirilir ve yalnızca o yeniden üretilir.",
@@ -130,7 +167,7 @@ def render_remaining():
         "",
         "1. Bir grubun kutusundaki metnin tamamını kopyalayıp ElevenLabs'e yapıştırın (model: **Eleven v3**).",
         f"2. Metindeki `{BREAK}` işaretlerine dokunmayın: ses orada susar, cümleler o sessizliklerden ayrılır.",
-        "3. Çıkan tek ses dosyasını başlıktaki adla (örnek: `grup02.mp3`) Downloads klasörüne kaydedin.",
+        f"3. Çıkan tek ses dosyasını başlıktaki adla (örnek: `{next(iter(left), PREFIX + '01')}.mp3`) Downloads klasörüne kaydedin.",
         "4. Hepsi aynı ses ve aynı ayarlarla üretilsin.",
         "",
         "Bir grupta cümleler net ayrılamazsa o grup oyuna aktarılmaz; hangisi olduğu",

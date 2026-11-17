@@ -292,6 +292,7 @@ class _MusicScreenState extends State<MusicScreen> {
             const SizedBox(width: 10),
             RoundButton(
               icon: Icons.replay_rounded,
+              asset: 'btn_replay',
               color: AppColors.purple,
               size: 40,
               onTap: () => _select(_song),

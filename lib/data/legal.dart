@@ -3,8 +3,8 @@ import '../app_state.dart';
 /// Uygulama sürümü (pubspec.yaml ile aynı tutulur).
 const appVersion = '1.0.0';
 
-/// Destek adresi. Alan adı alınınca gerçek adresle değiştirilecek.
-const supportEmail = 'destek@minikkasif.com';
+/// Destek adresi (Cloudflare e-posta yönlendirmesiyle ebeveynin Gmail'ine gider).
+const supportEmail = 'destek@minikkasif.app';
 
 /// Uzun yasal metinler. Türkçe ve İngilizce yazıldı; diğer dillerde
 /// İngilizcesi gösterilir.

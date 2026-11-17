@@ -241,6 +241,21 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// [id] profilinin ilerlemesiyle [read] çalıştırır ve hemen seçili profile
+  /// döner. Raporda başka bir çocuğa bakmak, oynayan çocuğu değiştirmez.
+  T peekProfile<T>(int id, T Function() read) {
+    if (id == _currentId || !profiles.any((p) => p.id == id)) return read();
+    final current = _currentId;
+    _currentId = id;
+    _loadProfileData();
+    try {
+      return read();
+    } finally {
+      _currentId = current;
+      _loadProfileData();
+    }
+  }
+
   void addProfile(String name, String avatar, [int age = 0]) {
     if (profiles.length >= maxProfiles) return;
     final id = profiles.map((p) => p.id).reduce(max) + 1;
@@ -311,6 +326,16 @@ class AppState extends ChangeNotifier {
   /// En az bir kez bitirilmiş bölüm sayısı.
   int get completedLevels => _stars.length;
 
+  /// Oyunun bütün bölümleri en az bir kez bitirildi mi? Öyleyse oyunun
+  /// madalyası kazanılmıştır.
+  bool gameComplete(GameDef game) {
+    if (game.levels <= 0) return false;
+    for (var level = 1; level <= game.levels; level++) {
+      if (!_stars.containsKey('${game.id}:$level')) return false;
+    }
+    return true;
+  }
+
   /// Bir bölüm, bir önceki bölüm en az bir kez bitirildiyse açılır.
   /// Bölüm aboneliksiz oynanabilir mi? İlk iki oyunun ilk dünyası (ilk on
   /// bölüm) ve diğer oyunların ilk bölümü ücretsizdir.
@@ -357,9 +382,10 @@ class AppState extends ChangeNotifier {
     _prefs?.setString(_k('plays'), jsonEncode(_plays));
 
     Sticker? sticker;
-    // Bölüm sonu çıkartması seyrektir: ilk bölüm (albümle tanışma) ve
-    // sonrasında her beş yeni bölümden biri. Asıl kaynak günün macerasıdır.
-    if (first && (completedLevels == 1 || completedLevels % 5 == 0)) {
+    // Bölüm sonunda yalnızca ilk bölüm bir çıkartma verir (albümle tanışma).
+    // Çıkartmaların asıl kaynağı günün macerasıdır; oyunlar bitince madalya
+    // kazanılır.
+    if (first && completedLevels == 1) {
       sticker = _awardSticker();
     }
     // Günün macerası: hangi oyun olursa olsun bugün kazanılan yıldızlar
@@ -417,9 +443,20 @@ class AppState extends ChangeNotifier {
         if (!stickers.contains(s.id)) s,
     ];
     if (missing.isEmpty) return null;
+    // Bugünün ödülü olarak gösterilen çıkartma, günün macerası için saklanır;
+    // bölüm sonunda (başka eksik varken) o verilmez.
+    final reserved = prefer == null && _dailyDate == _today()
+        ? _dailySticker
+        : null;
+    final pool = missing.length > 1
+        ? [
+            for (final s in missing)
+              if (s.id != reserved) s,
+          ]
+        : missing;
     final sticker = missing.firstWhere(
       (s) => s.id == prefer,
-      orElse: () => missing[Random().nextInt(missing.length)],
+      orElse: () => pool[Random().nextInt(pool.length)],
     );
     stickers = [...stickers, sticker.id];
     _prefs?.setStringList(_k('stickers'), stickers);

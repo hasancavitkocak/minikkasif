@@ -12,6 +12,8 @@ import '../services/audio.dart';
 import '../theme.dart';
 import 'common.dart';
 import 'how_to.dart';
+import 'medal.dart';
+import 'motion.dart';
 import 'ui.dart';
 
 /// Bir turun çizimi. Tur çözülünce [onSolved], hatalı denemede [onMistake]
@@ -97,6 +99,9 @@ class _GameShellState extends State<GameShell> {
   String? _lastSpoken;
   String _praise = '';
   Sticker? _newSticker;
+
+  /// Bu bölümle oyunun bütün bölümleri bittiyse kazanılan madalya.
+  bool _newMedal = false;
   final List<Timer> _timers = [];
   final bool _daily = GameShell.dailyRun;
 
@@ -190,7 +195,9 @@ class _GameShellState extends State<GameShell> {
 
   void _finish() {
     final stars = AppState.I.starsFor(_mistakes, widget.tolerance);
+    final hadMedal = AppState.I.gameComplete(widget.game);
     _newSticker = AppState.I.finishLevel(widget.game.id, _level, stars);
+    _newMedal = !hadMedal && AppState.I.gameComplete(widget.game);
     Sfx.play('win');
     _praise = L.praise();
     Tts.speak(_praise, owner: this);
@@ -208,6 +215,7 @@ class _GameShellState extends State<GameShell> {
       _celebrating = false;
       _earnedStars = null;
       _newSticker = null;
+      _newMedal = false;
       _pose = 'thinking';
     });
     _speakInstruction(force: true);
@@ -302,15 +310,8 @@ class _GameShellState extends State<GameShell> {
         children: [
           const BackRoundButton(),
           const SizedBox(width: 6),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: SizedBox(
-              key: ValueKey(_pose),
-              width: 64,
-              height: 64,
-              child: Mascot(_pose),
-            ),
-          ),
+          // Doğru cevapta zıplar, yanlışta başını sallar.
+          SizedBox(width: 64, height: 64, child: ReactingMascot(_pose)),
           // Maskotun konuşma balonu: yönerge yazılı görünür, dokununca okunur.
           Expanded(
             child: Align(
@@ -346,6 +347,7 @@ class _GameShellState extends State<GameShell> {
           RoundButton(
             icon: Icons.home_rounded,
             color: AppColors.orange,
+            asset: 'btn_home',
             size: 46,
             onTap: _goHome,
           ),
@@ -353,6 +355,7 @@ class _GameShellState extends State<GameShell> {
           RoundButton(
             icon: Icons.question_mark_rounded,
             color: AppColors.blue,
+            asset: 'btn_help',
             size: 46,
             onTap: _showHowTo,
           ),
@@ -361,7 +364,7 @@ class _GameShellState extends State<GameShell> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: Colors.white.withValues(alpha: 0.94),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -400,7 +403,8 @@ class _GameShellState extends State<GameShell> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Bobbing(
+                    // Fıstık iki kez sevinçle zıplayıp durur.
+                    const HopOnce(
                       child: SizedBox(
                         width: 110,
                         height: 110,
@@ -413,12 +417,14 @@ class _GameShellState extends State<GameShell> {
                       style: titleStyle.copyWith(fontSize: 20),
                     ),
                     const SizedBox(height: 6),
-                    PopIn(delay: 3, child: StarsRow(stars, size: 56)),
+                    // Yıldızlar birer birer gelip yerine oturur.
+                    StarReveal(stars, size: 56),
                     if (_newSticker != null) ...[
                       const SizedBox(height: 8),
-                      // Bu bölümle kazanılan yeni çıkartma.
-                      PopIn(
-                        delay: 7,
+                      // Bu bölümle kazanılan yeni çıkartma, yıldızlardan
+                      // sonra yukarıdan dönerek gelir.
+                      FlyIn(
+                        delay: StarReveal.doneAfter(stars),
                         child: Container(
                           padding: const EdgeInsets.fromLTRB(8, 6, 16, 6),
                           decoration: BoxDecoration(
@@ -440,6 +446,41 @@ class _GameShellState extends State<GameShell> {
                               const SizedBox(width: 10),
                               Text(
                                 L.t('new_sticker'),
+                                style: titleStyle.copyWith(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (_newMedal) ...[
+                      const SizedBox(height: 8),
+                      // Oyunun bütün bölümleri bitti: oyunun madalyası, yıldızlardan
+                      // (ve varsa çıkartmadan) sonra gelir.
+                      FlyIn(
+                        delay:
+                            StarReveal.doneAfter(stars) +
+                            Duration(
+                              milliseconds: _newSticker != null ? 900 : 0,
+                            ),
+                        child: Container(
+                          key: const ValueKey('new_medal'),
+                          padding: const EdgeInsets.fromLTRB(8, 6, 16, 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.yellow.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: AppColors.orange,
+                              width: 3,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              MedalBadge(widget.game, size: 62),
+                              const SizedBox(width: 10),
+                              Text(
+                                L.t('new_medal'),
                                 style: titleStyle.copyWith(fontSize: 20),
                               ),
                             ],

@@ -19,12 +19,13 @@ OBJECTS = [
     "apple", "banana", "strawberry", "orange", "grapes", "watermelon", "pear", "cherry",
     "cat", "dog", "rabbit", "elephant", "lion", "frog", "fish", "bird",
     "car", "bus", "plane", "boat", "train", "balloon", "ball", "star",
+    "lemon", "tomato", "cucumber", "eggplant", "potato", "broccoli", "pumpkin",
 ]
 GAMES = [
     "shapes", "memory", "shadow", "count", "pattern", "odd", "puzzle", "sort",
     "maze", "color", "groups", "simon", "diff", "dots",
     "scene", "duel", "music", "wardrobe",
-    "jobs", "seasons", "clock", "letters", "story",
+    "jobs", "seasons", "clock", "letters", "story", "animals", "fruits",
 ]
 JOBS = [
     "job_firefighter", "job_doctor", "job_cook", "job_teacher", "job_builder", "job_painter", "job_postman", "job_pilot", "job_farmer",
@@ -34,7 +35,7 @@ SEASONS = [
     "season_spring", "season_summer", "season_autumn", "season_winter",
     "dress_spring", "dress_summer", "dress_autumn", "dress_winter",
 ]
-STORIES = [f"story_{name}_{page}" for name in ["ball", "seed"] for page in range(1, 7)]
+STORIES = [f"story_{name}_{page}" for name in ["ball", "seed", "rain", "share", "sleep"] for page in range(1, 7)]
 OUTFITS = ["acc_cap", "acc_flower", "acc_glasses", "acc_party", "acc_bow", "acc_explorer", "acc_tophat", "acc_crown"]
 STICKERS = [
     "st_cow", "st_goat", "st_chicken", "st_horse", "st_sheep", "st_duck", "st_tractor", "st_barn", "st_sunflower", "st_carrot", "st_corn", "st_rooster",
@@ -44,6 +45,7 @@ STICKERS = [
 UI = [
     "lock", "star_full", "star_empty", "crown", "card_back", "btn_play", "btn_back", "btn_home",
     "btn_replay", "btn_next", "btn_sound_on", "btn_sound_off", "btn_parents",
+    "btn_help", "btn_close", "prompt_tree", "btn_done", "btn_eraser", "btn_trash", "icon_gift", "icon_album",
 ]
 
 EXTENSIONS = {".png", ".jpg", ".jpeg", ".jfif", ".webp"}

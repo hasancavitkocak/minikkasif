@@ -138,6 +138,7 @@ Future<void> showCertificate(BuildContext context, GameDef game) {
                 end: -14,
                 child: RoundButton(
                   icon: Icons.close_rounded,
+                  asset: 'btn_close',
                   color: AppColors.red,
                   size: 46,
                   onTap: () => Navigator.of(context).pop(),

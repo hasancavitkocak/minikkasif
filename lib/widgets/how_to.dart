@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../data/animals.dart';
 import '../data/jobs.dart';
 import '../data/objects.dart';
+import '../data/produce.dart';
 import '../data/seasons.dart';
 import '../games/clock_game.dart';
 import '../games/game_def.dart';
@@ -606,25 +608,43 @@ Widget demoFor(String gameId) {
       );
     case 'jobs':
     case 'seasons':
+    case 'animals':
+    case 'fruits':
       // İlk bölüm tanıtımdır: resme bakılır, ok ile sonrakine geçilir.
-      final jobsDemo = gameId == 'jobs';
+      final picture = switch (gameId) {
+        'jobs' => jobs[0].person,
+        'seasons' => seasons[3],
+        'animals' => animals[0].image,
+        _ => produce[0].image,
+      };
+      // Resmin yanındaki küçük öğe: mesleğin aracı, mevsimin kıyafetli
+      // Fıstık'ı (resmin köşesinde büyükçe, oyundaki gibi), hayvanın sesi.
+      final extra = switch (gameId) {
+        'jobs' => _tile(ObjectImage(jobs[0].tool)),
+        'seasons' => ObjectImage(seasonOutfits[3]),
+        'animals' => _tile(
+          const FittedBox(
+            child: Icon(Icons.volume_up_rounded, color: AppColors.blue),
+          ),
+        ),
+        _ => null,
+      };
+      final big = gameId == 'seasons';
       return DemoScene(
         items: [
           DemoItem(
             'picture',
             const Alignment(-0.55, 0),
             0.8,
-            _tile(ObjectImage(jobsDemo ? jobs[0].person : seasons[3])),
+            _tile(ObjectImage(picture)),
           ),
-          DemoItem(
-            'extra',
-            // Mevsimlerde Fıstık, resmin köşesinde büyükçe durur (oyundaki gibi).
-            jobsDemo ? const Alignment(0.1, 0.45) : const Alignment(-0.1, 0.4),
-            jobsDemo ? 0.36 : 0.62,
-            jobsDemo
-                ? _tile(ObjectImage(jobs[0].tool))
-                : ObjectImage(seasonOutfits[3]),
-          ),
+          if (extra != null)
+            DemoItem(
+              'extra',
+              big ? const Alignment(-0.1, 0.4) : const Alignment(0.1, 0.45),
+              big ? 0.62 : 0.36,
+              extra,
+            ),
           DemoItem(
             'next',
             const Alignment(0.72, 0),

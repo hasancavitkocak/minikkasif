@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../app_state.dart';
+
 import '../l10n.dart';
 import '../services/audio.dart';
 import '../theme.dart';
@@ -120,9 +122,17 @@ class LearnRound extends StatefulWidget {
     required this.textKey,
     this.extras = const [],
     this.companion,
+    this.textKey2,
+    this.afterSpeech,
     required this.first,
     required this.onDone,
   });
+
+  /// Tanıtım cümlesinin ardından gelen ikinci cümle (ör. "Ağaçta yetişir.").
+  final String? textKey2;
+
+  /// Ad ve cümleler söylendikten sonra yapılacak iş (ör. hayvanın sesi).
+  final VoidCallback? afterSpeech;
 
   final Widget image;
 
@@ -155,17 +165,58 @@ class _LearnRoundState extends State<LearnRound> {
     _timer = Timer(Duration(milliseconds: widget.first ? 2400 : 600), () {
       if (mounted) _say();
     });
+    if (!Tts.enabled || !AppState.I.soundOn) {
+      _ready = true;
+    } else {
+      _safety = Timer(const Duration(seconds: 14), _unlock);
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _safety?.cancel();
     Tts.stopFor(this);
     super.dispose();
   }
 
-  /// Adı, ardından tanıtım cümlesini söyler.
-  void _say() => Tts.speakKeys([widget.nameKey, widget.textKey], owner: this);
+  /// Son başlatılan anlatım; araya yenisi girerse eskisinin sonu çalınmaz.
+  int _sayId = 0;
+
+  List<String> get _keys => [
+    widget.nameKey,
+    widget.textKey,
+    if (widget.textKey2 != null) widget.textKey2!,
+  ];
+
+  /// Adı, ardından tanıtım cümlelerini söyler; varsa en son [afterSpeech].
+  Future<void> _say() async {
+    final id = ++_sayId;
+    final keys = _keys;
+    await Tts.speakKeys(keys, owner: this);
+    if (!mounted || id != _sayId) return;
+    final last = L.t(keys.last);
+    await Voice.finished(Duration(milliseconds: 600 + 90 * last.length));
+    if (!mounted || id != _sayId) return;
+    final after = widget.afterSpeech;
+    if (after != null) {
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      if (!mounted || id != _sayId) return;
+      after();
+      // Hayvan sesi gibi kısa sesin bitmesi beklenir.
+      await Future<void>.delayed(const Duration(milliseconds: 2000));
+    }
+    _unlock();
+  }
+
+  /// İleri düğmesi anlatım bitince açılır; çocuk dinlemeden geçemez. Ses
+  /// kapalıysa beklenmez; bir aksilikte de en geç birkaç saniyede açılır.
+  bool _ready = false;
+  Timer? _safety;
+
+  void _unlock() {
+    if (mounted && !_ready) setState(() => _ready = true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +284,7 @@ class _LearnRoundState extends State<LearnRound> {
                       ),
                       decoration: panelDecoration(radius: 16),
                       child: Text(
-                        L.t(widget.textKey),
+                        [for (final k in _keys.skip(1)) L.t(k)].join(' '),
                         textAlign: TextAlign.center,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
@@ -269,7 +320,9 @@ class _LearnRoundState extends State<LearnRound> {
               key: const ValueKey('learn_next'),
               icon: Icons.arrow_forward_rounded,
               color: AppColors.green,
+              asset: 'btn_next',
               size: 72,
+              enabled: _ready,
               onTap: widget.onDone,
             ),
             const SizedBox(width: 8),

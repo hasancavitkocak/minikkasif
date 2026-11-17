@@ -2,32 +2,47 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../data/stickers.dart';
+import '../games/registry.dart';
 import '../l10n.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/medal.dart';
 import '../widgets/ui.dart';
 
-/// Çıkartma albümü: bölümleri bitirdikçe kazanılan çıkartmalar üç temalı
+/// Çıkartma albümü: günün macerasıyla kazanılan çıkartmalar üç temalı
+/// sayfada, oyunların bütün bölümleri bitince kazanılan madalyalar dördüncü
 /// sayfada toplanır.
 class AlbumScreen extends StatefulWidget {
-  const AlbumScreen({super.key});
+  const AlbumScreen({super.key, this.initialPage});
+
+  /// Açılışta gösterilecek sayfa (farm, sea, space, medals).
+  final String? initialPage;
 
   @override
   State<AlbumScreen> createState() => _AlbumScreenState();
 }
 
 class _AlbumScreenState extends State<AlbumScreen> {
-  static const _backdrops = {'farm': 'meadow', 'sea': 'sea', 'space': 'space'};
+  static const _backdrops = {
+    'farm': 'meadow',
+    'sea': 'sea',
+    'space': 'space',
+    'medals': 'home',
+  };
   static const _colors = {
     'farm': AppColors.green,
     'sea': AppColors.blue,
     'space': AppColors.purple,
+    'medals': AppColors.orange,
   };
+  static const _pages = [...stickerPages, 'medals'];
 
-  String _page = stickerPages.first;
+  late String _page = widget.initialPage ?? stickerPages.first;
 
   @override
   Widget build(BuildContext context) {
+    final medals = _page == 'medals';
+    final earned = games.where(AppState.I.gameComplete).length;
     final owned = AppState.I.stickers;
     final stickers = [
       for (final s in allStickers)
@@ -62,7 +77,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
                                   ),
                                   decoration: panelDecoration(radius: 18),
                                   child: Text(
-                                    '${owned.length}/${allStickers.length}',
+                                    medals
+                                        ? '$earned/${games.length}'
+                                        : '${owned.length}/${allStickers.length}',
                                     style: titleStyle.copyWith(fontSize: 18),
                                   ),
                                 ),
@@ -72,7 +89,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                for (final page in stickerPages)
+                                for (final page in _pages)
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 6,
@@ -94,18 +111,21 @@ class _AlbumScreenState extends State<AlbumScreen> {
                             ToyPanel(
                               border: _colors[_page]!,
                               padding: const EdgeInsets.all(14),
-                              child: Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children: [
-                                  for (final (i, sticker) in stickers.indexed)
-                                    _slot(
-                                      sticker,
-                                      owned.contains(sticker.id),
-                                      i,
+                              child: medals
+                                  ? _medals()
+                                  : Wrap(
+                                      spacing: 12,
+                                      runSpacing: 12,
+                                      children: [
+                                        for (final (i, sticker)
+                                            in stickers.indexed)
+                                          _slot(
+                                            sticker,
+                                            owned.contains(sticker.id),
+                                            i,
+                                          ),
+                                      ],
                                     ),
-                                ],
-                              ),
                             ),
                           ],
                         ),
@@ -123,6 +143,51 @@ class _AlbumScreenState extends State<AlbumScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Oyunların madalyaları: kazanılanlar altın, diğerleri gri.
+  Widget _medals() {
+    return Column(
+      children: [
+        Text(
+          L.t('medal_hint'),
+          textAlign: TextAlign.center,
+          style: titleStyle.copyWith(fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 14,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final game in games)
+              SizedBox(
+                width: 96,
+                child: Column(
+                  children: [
+                    MedalBadge(
+                      game,
+                      key: ValueKey('medal_${game.id}'),
+                      earned: AppState.I.gameComplete(game),
+                      size: 74,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      L.t('g_${game.id}'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 

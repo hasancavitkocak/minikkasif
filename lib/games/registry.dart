@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import 'animals_game.dart';
 import 'clock_game.dart';
 import 'coloring_game.dart';
 import 'count_game.dart';
 import 'diff_game.dart';
 import 'dots_game.dart';
+import 'fruits_game.dart';
 import 'game_def.dart';
 import 'groups_game.dart';
 import 'jobs_game.dart';
@@ -166,6 +168,18 @@ final games = <GameDef>[
     emoji: '🔤',
     color: const Color(0xFFAB47BC),
     builder: (g, level) => LettersGame(game: g, level: level),
+  ),
+  GameDef(
+    id: 'animals',
+    emoji: '🐮',
+    color: const Color(0xFF8D6E63),
+    builder: (g, level) => AnimalsGame(game: g, level: level),
+  ),
+  GameDef(
+    id: 'fruits',
+    emoji: '🍎',
+    color: const Color(0xFF66BB6A),
+    builder: (g, level) => FruitsGame(game: g, level: level),
   ),
 ];
 

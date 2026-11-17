@@ -215,6 +215,7 @@ class _ParentGateDialogState extends State<_ParentGateDialog> {
                     alignment: Alignment.topCenter,
                     child: RoundButton(
                       icon: Icons.close_rounded,
+                      asset: 'btn_close',
                       color: AppColors.red,
                       size: 44,
                       onTap: () => Navigator.of(context).pop(false),

@@ -173,6 +173,7 @@ class _IntroDialogState extends State<_IntroDialog> {
                     end: 0,
                     child: RoundButton(
                       icon: Icons.close_rounded,
+                      asset: 'btn_close',
                       color: AppColors.grey,
                       size: 46,
                       onTap: () => Navigator.of(context).pop(),

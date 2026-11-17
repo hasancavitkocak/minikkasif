@@ -125,11 +125,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _openParents() async {
+  /// Ebeveyn kapısından geçilirse ebeveyn alanını [tab] sekmesinde açar
+  /// (0: profiller).
+  Future<void> _openParents({int tab = 0}) async {
     final navigator = Navigator.of(context);
     if (await showParentGate(context)) {
       navigator.push(
-        MaterialPageRoute<void>(builder: (_) => const ParentsScreen()),
+        MaterialPageRoute<void>(builder: (_) => ParentsScreen(initialTab: tab)),
       );
     }
   }
@@ -138,44 +140,62 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
   }
 
-  /// Birden fazla profil varsa çocuğun kendi profilini seçtiği pencere.
+  /// Profil penceresi: çocuk kendi profiline dokunarak geçer; altındaki
+  /// "Profilleri düzenle" ebeveyn kapısından geçip profil sekmesini açar (ad,
+  /// avatar, yaş değiştirme ve yeni profil ekleme).
   void _pickProfile() {
     final state = AppState.I;
-    if (state.profiles.length < 2) return;
     showDialog<void>(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: FittedBox(
           child: ToyPanel(
-            child: Row(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (final p in state.profiles)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Pressable(
-                      onTap: () {
-                        state.switchProfile(p.id);
-                        Navigator.of(context).pop();
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Avatar(
-                            p,
-                            size: 96,
-                            selected: p.id == state.profile.id,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final p in state.profiles)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Pressable(
+                          onTap: () {
+                            state.switchProfile(p.id);
+                            Navigator.of(context).pop();
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Avatar(
+                                p,
+                                size: 96,
+                                selected: p.id == state.profile.id,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                state.profileName(p),
+                                style: titleStyle.copyWith(fontSize: 18),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            state.profileName(p),
-                            style: titleStyle.copyWith(fontSize: 18),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                BigButton(
+                  key: const ValueKey('edit_profiles'),
+                  label: L.t('edit_profiles'),
+                  icon: Icons.lock_rounded,
+                  color: AppColors.blue,
+                  fontSize: 17,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _openParents(tab: 0);
+                  },
+                ),
               ],
             ),
           ),
@@ -272,6 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? Icons.check_circle_rounded
                   : Icons.card_giftcard_rounded,
               color: state.dailyComplete ? AppColors.green : AppColors.red,
+              asset: state.dailyComplete ? null : 'icon_gift',
               // Hedefe ulaşılana kadar bugünkü yıldız sayısı da görünür.
               label: state.dailyComplete || state.dailyStars == 0
                   ? L.t('daily')
@@ -283,6 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 10),
           _pill(
             icon: Icons.auto_stories_rounded,
+            asset: 'icon_album',
             color: AppColors.purple,
             label: '${state.stickers.length}/${allStickers.length}',
             pulse: false,
@@ -299,6 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required String label,
     required bool pulse,
     required VoidCallback onTap,
+    String? asset,
   }) {
     final pill = Pressable(
       onTap: onTap,
@@ -322,7 +345,17 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 24),
+              if (asset == null)
+                Icon(icon, color: Colors.white, size: 24)
+              else
+                SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: GameImage(
+                    'assets/images/ui/$asset.png',
+                    fallback: Icon(icon, color: Colors.white, size: 24),
+                  ),
+                ),
               const SizedBox(width: 6),
               Text(
                 label,

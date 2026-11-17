@@ -189,12 +189,7 @@ class _LettersRoundState extends State<_LettersRound> {
     return QuizRound(
       prompt: mode == LettersMode.hear
           // Hoparlöre dokununca harf yeniden söylenir.
-          ? Pressable(
-              onTap: _say,
-              child: const FittedBox(
-                child: Icon(Icons.volume_up_rounded, color: AppColors.blue),
-              ),
-            )
+          ? Pressable(onTap: _say, child: const SpeakerArt())
           : _letter(_upper[_answer], AppColors.ink),
       // Renk harfe değil sıraya bağlıdır; yoksa renk doğru cevabı ele verir.
       options: [

@@ -5,7 +5,7 @@ import '../services/audio.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/ui.dart';
-import 'home_screen.dart';
+import 'who_screen.dart';
 
 /// Karşılama ekranı: oyunun adı, maskot ve büyük "başla" butonu.
 class WelcomeScreen extends StatelessWidget {
@@ -16,7 +16,8 @@ class WelcomeScreen extends StatelessWidget {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 450),
-        pageBuilder: (_, _, _) => const HomeScreen(),
+        // Birden fazla profil varsa önce "Kim oynuyor?" sorulur.
+        pageBuilder: (_, _, _) => WhoScreen.next(),
         transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),

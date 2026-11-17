@@ -7,7 +7,6 @@ import '../data/objects.dart';
 import '../data/seasons.dart';
 import '../l10n.dart';
 import '../services/audio.dart';
-import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/game_shell.dart';
 import 'game_def.dart';
@@ -155,12 +154,7 @@ class _SeasonsRoundState extends State<_SeasonsRound> {
     return QuizRound(
       prompt: switch (mode) {
         // Hoparlöre dokununca mevsim adı yeniden söylenir.
-        SeasonsMode.find => Pressable(
-          onTap: _say,
-          child: const FittedBox(
-            child: Icon(Icons.volume_up_rounded, color: AppColors.blue),
-          ),
-        ),
+        SeasonsMode.find => Pressable(onTap: _say, child: const SpeakerArt()),
         SeasonsMode.season => ObjectImage(seasonOutfits[_answer]),
         _ => ObjectImage(seasons[_answer]),
       },
