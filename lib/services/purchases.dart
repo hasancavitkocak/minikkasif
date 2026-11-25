@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
@@ -86,6 +87,54 @@ class Purchases extends ChangeNotifier {
       SK2SubscriptionPeriodUnit.year => 365,
     };
     return days * value * count;
+  }
+
+  /// Google Play: ürün kimliği -> satın alınırken kullanılacak teklif.
+  /// Kullanıcı ücretsiz denemeye hak sahibiyse deneme teklifi, değilse
+  /// temel plan. Ekranda ise her zaman temel planın fiyatı gösterilir.
+  final Map<String, ProductDetails> _purchaseOffer = {};
+
+  /// ISO 8601 süresini (P3D, P1W, P1M, P1Y) güne çevirir; okunamazsa 0.
+  static int isoPeriodDays(String period) {
+    final m = RegExp(r'^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?$')
+        .firstMatch(period);
+    if (m == null) return 0;
+    int n(int i) => int.tryParse(m.group(i) ?? '') ?? 0;
+    return n(1) * 365 + n(2) * 30 + n(3) * 7 + n(4);
+  }
+
+  /// Google Play her abonelik teklifini ayrı bir kayıt olarak döndürür.
+  /// Her ürün için temel planı ekranda göstermek, varsa ücretsiz deneme
+  /// teklifini satın almada kullanmak üzere ayırır. Play yalnızca kullanıcının
+  /// hak sahibi olduğu teklifleri döndürür; denemeyi kullanmış olana deneme
+  /// teklifi gelmez.
+  List<ProductDetails> _pickPlayOffers(List<ProductDetails> all) {
+    _purchaseOffer.clear();
+    final shown = <String, ProductDetails>{};
+    for (final product in all) {
+      if (product is! GooglePlayProductDetails) {
+        shown.putIfAbsent(product.id, () => product);
+        continue;
+      }
+      final index = product.subscriptionIndex;
+      final offers = product.productDetails.subscriptionOfferDetails;
+      if (index == null || offers == null) {
+        shown.putIfAbsent(product.id, () => product);
+        continue;
+      }
+      final offer = offers[index];
+      final first = offer.pricingPhases.first;
+      if (offer.offerId == null) {
+        shown[product.id] = product;
+        _purchaseOffer.putIfAbsent(product.id, () => product);
+      } else if (first.priceAmountMicros == 0) {
+        _purchaseOffer[product.id] = product;
+        _trialDays[product.id] =
+            isoPeriodDays(first.billingPeriod) *
+            (first.billingCycleCount > 0 ? first.billingCycleCount : 1);
+      }
+    }
+    return shown.values.toList();
   }
 
   /// Mağazadaki ücretsiz deneme tekliflerini okur. Kullanıcı denemeyi daha
@@ -185,9 +234,14 @@ class Purchases extends ChangeNotifier {
     notifyListeners();
     try {
       final response = await InAppPurchase.instance.queryProductDetails(_ids);
-      products = response.productDetails;
       error = response.error?.message;
-      await _loadTrials();
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        _trialDays.clear();
+        products = _pickPlayOffers(response.productDetails);
+      } else {
+        products = response.productDetails;
+        await _loadTrials();
+      }
     } catch (e) {
       error = e.toString();
     }
@@ -200,7 +254,9 @@ class Purchases extends ChangeNotifier {
     notifyListeners();
     try {
       await InAppPurchase.instance.buyNonConsumable(
-        purchaseParam: PurchaseParam(productDetails: product),
+        purchaseParam: PurchaseParam(
+          productDetails: _purchaseOffer[product.id] ?? product,
+        ),
       );
     } catch (e) {
       error = e.toString();

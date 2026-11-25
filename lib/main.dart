@@ -92,8 +92,7 @@ class _MinikKasifAppState extends State<MinikKasifApp>
     // (tarayıcıda odağın başka yere geçmesi, iOS'ta bildirim perdesi) ekran
     // hâlâ görünür olduğu için sayılır.
     ScreenTime.I.setActive(
-      state == AppLifecycleState.resumed ||
-          state == AppLifecycleState.inactive,
+      state == AppLifecycleState.resumed || state == AppLifecycleState.inactive,
     );
     if (state == AppLifecycleState.paused) _pausedAt ??= DateTime.now();
     if (state == AppLifecycleState.resumed) {

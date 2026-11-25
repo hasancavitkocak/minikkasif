@@ -2,7 +2,7 @@ name: minik_kasif
 description: "Minik Kaşif: 3-5 yaş için zekâ geliştiren mini oyunlar."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.1+1
 
 environment:
   sdk: ^3.13.7
@@ -17,6 +17,7 @@ dependencies:
   flutter_tts: ^4.2.5
   in_app_purchase: ^3.3.1
   in_app_purchase_storekit: ^0.4.17
+  in_app_purchase_android: ^0.5.5
   audioplayers: ^6.8.1
 
 dev_dependencies:
