@@ -324,3 +324,5 @@ yani kayıtlar parça parça eklenebilir.
 | `story_sleep_4.mp3` | Yatağına uzandı ve en sevdiği kitaba baktı. | var |
 | `story_sleep_5.mp3` | Oyuncak ayısına sarıldı ve gözlerini kapattı. | var |
 | `story_sleep_6.mp3` | İyi geceler, Fıstık! Tatlı rüyalar! | var |
+| `time_warn.mp3` | Birazdan dinlenme zamanı! | var |
+| `time_up.mp3` | Bugünlük bu kadar! Yarın yine oynarız. | var |

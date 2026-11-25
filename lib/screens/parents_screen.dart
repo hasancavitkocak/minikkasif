@@ -5,6 +5,7 @@ import '../data/legal.dart';
 import '../data/stickers.dart';
 import '../l10n.dart';
 import '../services/audio.dart';
+import '../services/screen_time.dart';
 import '../services/purchases.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -282,38 +283,54 @@ class _ParentsScreenState extends State<ParentsScreen> {
     size: 30,
   );
 
-  /// Ayarlar: ses, müzik ve ilerlemeyi sıfırlama.
+  /// Ayarlar: ses, müzik, günlük süre ve ilerlemeyi sıfırlama.
   Widget _settings(BuildContext context) {
     final state = AppState.I;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    final column = Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _row(
-          L.t('sound'),
-          icon: state.soundOn
-              ? Icons.volume_up_rounded
-              : Icons.volume_off_rounded,
-          trailing: _Switch(value: state.soundOn, onChanged: state.setSound),
+        Row(
+          children: [
+            Expanded(
+              child: _row(
+                L.t('sound'),
+                icon: state.soundOn
+                    ? Icons.volume_up_rounded
+                    : Icons.volume_off_rounded,
+                dense: true,
+                trailing: _Switch(
+                  value: state.soundOn,
+                  onChanged: state.setSound,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _row(
+                L.t('music'),
+                icon: state.musicOn
+                    ? Icons.music_note_rounded
+                    : Icons.music_off_rounded,
+                dense: true,
+                trailing: _Switch(
+                  value: state.musicOn,
+                  onChanged: (on) {
+                    state.setMusic(on);
+                    Music.sync();
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 10),
-        _row(
-          L.t('music'),
-          icon: state.musicOn
-              ? Icons.music_note_rounded
-              : Icons.music_off_rounded,
-          trailing: _Switch(
-            value: state.musicOn,
-            onChanged: (on) {
-              state.setMusic(on);
-              Music.sync();
-            },
-          ),
-        ),
+        _timeLimit(),
         const SizedBox(height: 10),
         _row(
           L.t('reset'),
           icon: Icons.restart_alt_rounded,
           tint: AppColors.red,
+          dense: true,
           trailing: _chevron,
           onTap: () async {
             if (await _confirm(context, L.t('reset_confirm'))) {
@@ -322,6 +339,250 @@ class _ParentsScreenState extends State<ParentsScreen> {
           },
         ),
       ],
+    );
+    // Kısa ekranlarda (telefon) bütün ayarlar sığsın diye gerekirse küçülür.
+    return LayoutBuilder(
+      builder: (context, box) => Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(width: box.maxWidth, child: column),
+        ),
+      ),
+    );
+  }
+
+  /// Günlük oyun süresi: Kapalı / 15 / 30 / 45 / 60 dakika.
+  Widget _timeLimit() {
+    return ListenableBuilder(
+      listenable: ScreenTime.I,
+      builder: (context, _) {
+        final time = ScreenTime.I;
+        final left = time.remaining;
+        final min = L.t('min_short');
+        final subtitle = !time.enabled
+            ? L.t('time_limit_hint')
+            : left == null
+            ? L.t('time_unlimited')
+            : L
+                  .t('time_left')
+                  .replaceAll(
+                    '{n}',
+                    '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}',
+                  );
+        return Container(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+          decoration: BoxDecoration(
+            color: AppColors.cream,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.timer_rounded,
+                    color: AppColors.ink,
+                    size: 30,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          L.t('time_limit'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: titleStyle.copyWith(
+                            fontSize: 20,
+                            height: 1.25,
+                          ),
+                        ),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            height: 1.2,
+                            color: _muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  for (final m in ScreenTime.choices) ...[
+                    if (m != ScreenTime.choices.first) const SizedBox(width: 8),
+                    Expanded(
+                      child: _choiceChip(
+                        m == 0 ? L.t('time_off') : '$m $min',
+                        time.limitMinutes == m,
+                        () => time.setLimit(m),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _choiceChip(
+                      time.isCustom
+                          ? '${time.limitMinutes} $min'
+                          : L.t('time_custom'),
+                      time.isCustom,
+                      () => _pickCustomTime(context),
+                      icon: Icons.edit_rounded,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// "Özel" süre: − / + ile 5 dakikalık adımlarla seçilir.
+  Future<void> _pickCustomTime(BuildContext context) async {
+    final time = ScreenTime.I;
+    var value = time.enabled ? time.limitMinutes : 20;
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setLocal) {
+          void change(int delta) => setLocal(() {
+            value = (value + delta).clamp(
+              ScreenTime.customStep,
+              ScreenTime.customMax,
+            );
+          });
+          Widget step(IconData icon, int delta, bool enabled) => RoundButton(
+            icon: icon,
+            color: AppColors.blue,
+            size: 56,
+            enabled: enabled,
+            onTap: () => change(delta),
+          );
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: FittedBox(
+              child: SizedBox(
+                width: 420,
+                child: ToyPanel(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        L.t('time_limit'),
+                        textAlign: TextAlign.center,
+                        style: titleStyle.copyWith(fontSize: 22),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          step(
+                            Icons.remove_rounded,
+                            -ScreenTime.customStep,
+                            value > ScreenTime.customStep,
+                          ),
+                          SizedBox(
+                            width: 170,
+                            child: Text(
+                              '$value ${L.t('min_short')}',
+                              textAlign: TextAlign.center,
+                              style: titleStyle.copyWith(fontSize: 40),
+                            ),
+                          ),
+                          step(
+                            Icons.add_rounded,
+                            ScreenTime.customStep,
+                            value < ScreenTime.customMax,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          BigButton(
+                            label: L.t('cancel'),
+                            color: AppColors.blue,
+                            fontSize: 18,
+                            onTap: () => Navigator.of(context).pop(),
+                          ),
+                          BigButton(
+                            label: L.t('time_save'),
+                            color: AppColors.green,
+                            fontSize: 18,
+                            onTap: () => Navigator.of(context).pop(value),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (picked != null) time.setLimit(picked);
+  }
+
+  Widget _choiceChip(
+    String label,
+    bool selected,
+    VoidCallback onTap, {
+    IconData? icon,
+  }) {
+    return Pressable(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.pink : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppColors.pink : AppColors.grey,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 15,
+                color: selected ? Colors.white : AppColors.ink,
+              ),
+              const SizedBox(width: 3),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  height: 1.2,
+                  fontWeight: FontWeight.w800,
+                  color: selected ? Colors.white : AppColors.ink,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -807,7 +1068,10 @@ class _ParentsScreenState extends State<ParentsScreen> {
     Color? tint,
   }) {
     final row = Container(
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: dense ? 7 : 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: dense ? 10 : 14,
+        vertical: dense ? 7 : 12,
+      ),
       decoration: BoxDecoration(
         color: AppColors.cream,
         borderRadius: BorderRadius.circular(16),
@@ -815,21 +1079,25 @@ class _ParentsScreenState extends State<ParentsScreen> {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(icon, color: tint ?? AppColors.ink, size: 30),
-            const SizedBox(width: 12),
+            Icon(icon, color: tint ?? AppColors.ink, size: dense ? 26 : 30),
+            SizedBox(width: dense ? 8 : 12),
           ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: titleStyle.copyWith(
-                    fontSize: 20,
-                    height: 1.25,
-                    color: tint,
+                // Dar ekranda başlık kesilmek yerine biraz küçülür.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    style: titleStyle.copyWith(
+                      fontSize: 20,
+                      height: 1.25,
+                      color: tint,
+                    ),
                   ),
                 ),
                 if (subtitle != null)

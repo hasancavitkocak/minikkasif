@@ -9,6 +9,7 @@ import '../games/game_def.dart';
 import '../games/registry.dart';
 import '../l10n.dart';
 import '../services/audio.dart';
+import '../services/screen_time.dart';
 import '../theme.dart';
 import 'common.dart';
 import 'how_to.dart';
@@ -118,6 +119,8 @@ class _GameShellState extends State<GameShell> {
     super.initState();
     final scope = context.getInheritedWidgetOfExactType<_WorldData>();
     _level = scope?.level ?? widget.level;
+    // Süre bu bölümün ortasında dolarsa kilit, bölüm bitince açılır.
+    ScreenTime.I.beginLevel();
     // Dünyasız oyunlar her zaman ilk dünyanın nesneleriyle oynanır.
     if (scope == null) objectWorld = 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -138,7 +141,16 @@ class _GameShellState extends State<GameShell> {
       t.cancel();
     }
     Tts.stopFor(this);
+    _release();
     super.dispose();
+  }
+
+  bool _released = false;
+
+  void _release() {
+    if (_released) return;
+    _released = true;
+    ScreenTime.I.endLevel();
   }
 
   void _after(int ms, VoidCallback action) {
@@ -204,10 +216,16 @@ class _GameShellState extends State<GameShell> {
     // Yeni çıkartma sesli duyurulmaz; yalnızca ekranda küçük bir rozetle
     // görünür. Her bölümde yinelenen duyuru yorucu oluyordu.
     setState(() => _earnedStars = stars);
+    // Bölüm bitti: süre dolduysa kutlama duyulsun, sonra kilit açılsın.
+    _after(2500, _release);
   }
 
   void _replay() {
     _quiet();
+    if (_released) {
+      _released = false;
+      ScreenTime.I.beginLevel();
+    }
     setState(() {
       _round = 0;
       _attempt++;
