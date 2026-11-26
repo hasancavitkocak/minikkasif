@@ -1,3 +1,5 @@
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,6 +22,16 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  // Android'de her oynatıcı varsayılan olarak ses odağı ister; yeni bir ses
+  // başlayınca öncekine "odak kaybı" gider ve o oynatıcı durur (müzik ilk
+  // efektte susuyordu). Uygulamanın kendi sesleri birbirini kesmesin.
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    await AudioPlayer.global.setAudioContext(
+      AudioContext(
+        android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+      ),
+    );
+  }
   await AppState.I.load();
   await ScreenTime.I.load();
   Purchases.I.init();

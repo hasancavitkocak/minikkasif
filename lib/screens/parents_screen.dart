@@ -567,16 +567,19 @@ class _ParentsScreenState extends State<ParentsScreen> {
               ),
               const SizedBox(width: 3),
             ],
+            // Uzun dillerde ("Custom", "Eigene") kesilmek yerine küçülür.
             Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.2,
-                  fontWeight: FontWeight.w800,
-                  color: selected ? Colors.white : AppColors.ink,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.2,
+                    fontWeight: FontWeight.w800,
+                    color: selected ? Colors.white : AppColors.ink,
+                  ),
                 ),
               ),
             ),
