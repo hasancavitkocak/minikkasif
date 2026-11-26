@@ -190,14 +190,6 @@ class Purchases extends ChangeNotifier {
       if (!available) return;
       await loadProducts();
       await refresh();
-      // Android'de geçmiş satın alımlar sessizce sorgulanabilir; böylece süresi
-      // dolan ya da iptal edilen abonelik açılışta fark edilir.
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        await iap.restorePurchases();
-        Future.delayed(const Duration(seconds: 5), () {
-          if (!_sawActivePurchase) AppState.I.setPremium(false);
-        });
-      }
     } catch (e) {
       error = e.toString();
     }
@@ -208,8 +200,28 @@ class Purchases extends ChangeNotifier {
   /// biten ya da iade edilen abonelik artık listede olmaz ve premium kapanır.
   /// Sorgu sessizdir (şifre sormaz) ve çevrimdışı da çalışır. Açılışta ve
   /// uygulamaya her dönüşte çağrılır.
+  ///
+  /// Android'de Google Play yalnızca etkin (ya da ek süredeki) abonelikleri
+  /// döndürür: biten deneme, iptal edilip dolan abonelik gelmez. Birkaç saniye
+  /// içinde etkin bir satın alım görülmezse premium kapanır.
   Future<void> refresh() async {
     if (!enabled || kIsWeb || !available) return;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      _sawActivePurchase = false;
+      try {
+        await InAppPurchase.instance.restorePurchases();
+      } catch (_) {
+        return; // Play'e ulaşılamadı: mevcut durum korunur.
+      }
+      Future.delayed(const Duration(seconds: 5), () {
+        final grant = _lastGrant;
+        final justBought =
+            grant != null &&
+            DateTime.now().difference(grant) < const Duration(minutes: 2);
+        if (!_sawActivePurchase && !justBought) AppState.I.setPremium(false);
+      });
+      return;
+    }
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
     try {
       final owned = await SK2Transaction.currentEntitlements();
