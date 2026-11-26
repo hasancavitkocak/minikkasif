@@ -14,7 +14,7 @@ Mağaza görselleri `d:\reel_work\play\` klasöründe (üreten betik: `d:\reel_w
 Minik Kaşif: Fıstık'la Oyunlar
 
 **Kısa açıklama** (en çok 80 karakter)
-3-6 yaş için 20 eğitici oyun. Reklamsız, sesli anlatımlı, okuma bilmeden oynanır.
+3-6 yaş için 20 eğitici oyun. Reklamsız, sesli anlatım, okuma bilmeden oynanır.
 
 **Tam açıklama**
 
